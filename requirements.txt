@@ -1,5 +1,5 @@
 streamlit
-groq
 feedparser
-pandas
-python-dotenv
+groq
+pytz
+gtts
