@@ -252,54 +252,6 @@ div[data-testid="stMetricValue"] { color: #00ff8c; font-family: 'Share Tech Mono
 # KATEGORİLER VE RSS BESLEMELERİ TANIMI
 # ──────────────────────────────────────────────────────────────
 CATEGORIES = {
-    "📈 Borsa İstanbul": [
-        "https://feeds.bbci.co.uk/turkce/ekonomi/rss.xml",
-        "https://www.haberturk.com/rss/ekonomi.xml",
-        "https://www.bloomberght.com/rss",
-        "https://www.dunya.com/rss/anasayfa",
-    ],
-    "🌍 Global Ekonomi": [
-        "https://feeds.bbci.co.uk/news/business/rss.xml",
-        "https://www.reuters.com/rssFeed/businessNews",
-        "https://www.ekonomim.com/rss",
-    ],
-    "🛡️ Savunma Sanayii": [
-        "https://www.defenseone.com/rss/all/",
-        "https://breakingdefense.com/feed/",
-        "https://www.savunmasanayii.com/tr/rss",
-        "https://www.milliyet.com.tr/rss/rssNew/gundemRss.xml",
-    ],
-    "💻 Yazılım Dünyası": [
-        "https://techcrunch.com/feed/",
-        "https://www.theverge.com/rss/index.xml",
-        "https://webrazzi.com/feed/",
-        "https://www.donanimhaber.com/rss/tum/",
-    ],
-    "⚡ Elektrik-Elektronik": [
-        "https://spectrum.ieee.org/rss/fulltext",
-        "https://www.eetimes.com/rss/",
-        "https://chip.com.tr/feed/",
-    ],
-    "🤖 Yapay Zeka": [
-        "https://techcrunch.com/category/artificial-intelligence/feed/",
-        "https://venturebeat.com/category/ai/feed/",
-        "https://webrazzi.com/kategori/yapay-zeka/feed/",
-    ],
-    "🚀 Uzay Bilimleri": [
-        "https://www.space.com/feeds/all",
-        "https://spacenews.com/feed/",
-    ],
-    "⚽ Spor": [
-        "https://feeds.bbci.co.uk/sport/rss.xml",
-        "https://www.fanatik.com.tr/rss/gundem.xml",
-        "https://www.sporx.com/rss/haberler.xml",
-        "https://www.ntvspor.net/rss",
-    ],
-    "🏥 Sağlık": [
-        "https://feeds.webmd.com/rss/rss.aspx?RSSSource=RSS_PUBLIC",
-        "https://www.medicalnewstoday.com/rss",
-        "https://www.sabah.com.tr/rss/saglik.xml",
-    ],
     "🇹🇷 Türkiye Gündemi": [
         "https://www.trthaber.com/sondakika.rss",
         "https://www.sabah.com.tr/rss/anasayfa.xml",
@@ -310,6 +262,23 @@ CATEGORIES = {
         "https://www.haberturk.com/rss/anasayfa.xml",
         "https://www.sozcu.com.tr/feed/",
     ],
+    "📈 Borsa İstanbul": [
+        "https://feeds.bbci.co.uk/turkce/ekonomi/rss.xml",
+        "https://www.haberturk.com/rss/ekonomi.xml",
+        "https://www.bloomberght.com/rss",
+        "https://www.dunya.com/rss/anasayfa",
+    ],
+    "⚽ Spor": [
+        "https://feeds.bbci.co.uk/sport/rss.xml",
+        "https://www.fanatik.com.tr/rss/gundem.xml",
+        "https://www.sporx.com/rss/haberler.xml",
+        "https://www.ntvspor.net/rss",
+    ],
+    "🌍 Global Ekonomi": [
+        "https://feeds.bbci.co.uk/news/business/rss.xml",
+        "https://www.reuters.com/rssFeed/businessNews",
+        "https://www.ekonomim.com/rss",
+    ],
     "💰 Ekonomi & Finans TR": [
         "https://www.bloomberght.com/rss",
         "https://www.haberturk.com/rss/ekonomi.xml",
@@ -317,12 +286,88 @@ CATEGORIES = {
         "https://www.sabah.com.tr/rss/ekonomi.xml",
         "https://www.hurriyet.com.tr/rss/ekonomi",
     ],
+    "🛡️ Savunma Sanayii": [
+        "https://www.defenseone.com/rss/all/",
+        "https://breakingdefense.com/feed/",
+        "https://www.savunmasanayii.com/tr/rss",
+        "https://www.milliyet.com.tr/rss/rssNew/gundemRss.xml",
+    ],
+    "🤖 Yapay Zeka": [
+        "https://techcrunch.com/category/artificial-intelligence/feed/",
+        "https://venturebeat.com/category/ai/feed/",
+        "https://webrazzi.com/kategori/yapay-zeka/feed/",
+    ],
+    "💻 Yazılım Dünyası": [
+        "https://techcrunch.com/feed/",
+        "https://www.theverge.com/rss/index.xml",
+        "https://webrazzi.com/feed/",
+        "https://www.donanimhaber.com/rss/tum/",
+    ],
     "🔬 Bilim & Teknoloji TR": [
         "https://webrazzi.com/feed/",
         "https://www.donanimhaber.com/rss/tum/",
         "https://chip.com.tr/feed/",
         "https://www.ntv.com.tr/teknoloji.rss",
         "https://shiftdelete.net/feed",
+    ],
+    "⚡ Elektrik-Elektronik": [
+        "https://spectrum.ieee.org/rss/fulltext",
+        "https://www.eetimes.com/rss/",
+        "https://chip.com.tr/feed/",
+    ],
+    "🚀 Uzay Bilimleri": [
+        "https://www.space.com/feeds/all",
+        "https://spacenews.com/feed/",
+    ],
+    "🏥 Sağlık": [
+        "https://feeds.webmd.com/rss/rss.aspx?RSSSource=RSS_PUBLIC",
+        "https://www.medicalnewstoday.com/rss",
+        "https://www.sabah.com.tr/rss/saglik.xml",
+    ],
+    "🎮 Oyun Dünyası": [
+        "https://www.ign.com/articles.rss",
+        "https://kotaku.com/rss",
+        "https://www.eurogamer.net/rss/newsfeed",
+        "https://www.oyungezer.com.tr/feed/",
+    ],
+    "🌿 Çevre & Enerji": [
+        "https://www.theguardian.com/environment/rss",
+        "https://cleantechnica.com/feed/",
+        "https://www.enerji.gov.tr/rss",
+    ],
+    "📡 Dünya Gündemi": [
+        "https://feeds.bbci.co.uk/news/world/rss.xml",
+        "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
+        "https://www.aljazeera.com/xml/rss/all.xml",
+        "https://feeds.bbci.co.uk/turkce/rss.xml",
+    ],
+    "🏛️ Siyaset TR": [
+        "https://www.trthaber.com/sondakika.rss",
+        "https://www.hurriyet.com.tr/rss/siyaset",
+        "https://www.milliyet.com.tr/rss/rssNew/siyasetRss.xml",
+        "https://www.sabah.com.tr/rss/siyaset.xml",
+    ],
+    "🚗 Otomotiv": [
+        "https://www.otomobiltutkusu.com/feed/",
+        "https://www.autocarblog.com/feed/",
+        "https://www.motortrend.com/rss/all/",
+        "https://www.log.com.tr/kategori/otomotiv/feed/",
+    ],
+    "✈️ Turizm & Seyahat": [
+        "https://www.hurriyet.com.tr/rss/seyahat",
+        "https://www.sabah.com.tr/rss/yasam.xml",
+        "https://www.traveller.com.au/rss",
+    ],
+    "📰 Dünya Basını": [
+        "https://feeds.bbci.co.uk/news/rss.xml",
+        "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml",
+        "https://www.theguardian.com/world/rss",
+        "https://feeds.reuters.com/reuters/topNews",
+    ],
+    "🎬 Kültür & Sanat": [
+        "https://www.hurriyet.com.tr/rss/kultur-sanat",
+        "https://www.milliyet.com.tr/rss/rssNew/sanatRss.xml",
+        "https://pitchfork.com/rss/news/feed.xml",
     ],
 }
 
@@ -508,7 +553,7 @@ with st.sidebar:
 
     # Kategori seçimi
     st.markdown('<p style="color:#5a8a7a;font-size:0.75rem;letter-spacing:1px;font-family:\'Share Tech Mono\',monospace;">KATEGORİ SEÇİMİ</p>', unsafe_allow_html=True)
-    default_cats = ["🤖 Yapay Zeka", "💻 Yazılım Dünyası", "🌍 Global Ekonomi"]
+    default_cats = ["🇹🇷 Türkiye Gündemi", "📈 Borsa İstanbul", "⚽ Spor"]
     selected = st.multiselect(
         "Kategoriler",
         options=list(CATEGORIES.keys()),
