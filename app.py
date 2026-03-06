@@ -429,6 +429,16 @@ Sadece analizi yaz, başlık veya giriş cümlesi ekleme."""
 
 
 # ──────────────────────────────────────────────────────────────
+# GROQ API KEY — Streamlit Secrets'dan okunur (kullanıcıya gösterilmez)
+# Streamlit Cloud > App Settings > Secrets bölümüne:
+#   GROQ_API_KEY = "gsk_..."  ekleyin.
+# ──────────────────────────────────────────────────────────────
+try:
+    api_key = st.secrets["GROQ_API_KEY"]
+except (KeyError, FileNotFoundError):
+    api_key = None
+
+# ──────────────────────────────────────────────────────────────
 # SIDEBAR — Ayarlar ve Seçimler
 # ──────────────────────────────────────────────────────────────
 with st.sidebar:
@@ -440,21 +450,25 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    # API Key girişi
-    st.markdown('<p style="color:#5a8a7a;font-size:0.75rem;letter-spacing:1px;font-family:\'Share Tech Mono\',monospace;">GROQ API KEY</p>', unsafe_allow_html=True)
-    api_key = st.text_input(
-        "API Key",
-        type="password",
-        placeholder="gsk_...",
-        label_visibility="collapsed",
-    )
+    # API bağlantı durumu — key gösterilmez, sadece aktif/pasif bilgisi
     if api_key:
-        st.markdown('<p style="color:#00ff8c;font-size:0.7rem;font-family:\'Share Tech Mono\',monospace;">✓ BAĞLANTI AKTİF</p>', unsafe_allow_html=True)
+        st.markdown(
+            '<p style="color:#00ff8c;font-size:0.7rem;font-family:\'Share Tech Mono\','
+            'monospace;margin-bottom:4px;">✓ GROQ BAĞLANTI AKTİF</p>',
+            unsafe_allow_html=True,
+        )
     else:
-        st.markdown('<p style="color:#ff6060;font-size:0.7rem;font-family:\'Share Tech Mono\',monospace;">✗ API KEY GEREKLİ</p>', unsafe_allow_html=True)
-        st.info("Groq API key'inizi [console.groq.com](https://console.groq.com) adresinden ücretsiz alabilirsiniz.", icon="ℹ️")
+        st.markdown(
+            '<p style="color:#ff6060;font-size:0.7rem;font-family:\'Share Tech Mono\','
+            'monospace;margin-bottom:4px;">✗ GROQ_API_KEY BULUNAMADI</p>',
+            unsafe_allow_html=True,
+        )
+        st.caption("Streamlit Cloud → App Settings → Secrets bölümüne GROQ_API_KEY ekleyin.")
 
-    st.markdown('<div style="border-top:1px solid rgba(0,180,255,0.15);margin:16px 0;"></div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div style="border-top:1px solid rgba(0,180,255,0.15);margin:12px 0;"></div>',
+        unsafe_allow_html=True,
+    )
 
     # Kategori seçimi
     st.markdown('<p style="color:#5a8a7a;font-size:0.75rem;letter-spacing:1px;font-family:\'Share Tech Mono\',monospace;">KATEGORİ SEÇİMİ</p>', unsafe_allow_html=True)
@@ -497,16 +511,15 @@ if not selected:
     st.markdown('<div class="empty-state">[ KATEGORİ SEÇİLMEDİ — SOL MENÜDEN EN AZ 1 KATEGORİ SEÇİN ]</div>', unsafe_allow_html=True)
     st.stop()
 
-if not api_key and show_digest:
-    st.warning("⚠️  AI Özet özelliği için sol menüden Groq API key girin. Haberler API key olmadan da görüntülenebilir.", icon="⚠️")
-
-# Groq istemcisi (key varsa)
+# Groq istemcisi — Streamlit Secrets'daki GROQ_API_KEY ile başlatılır
 groq_client = None
 if api_key:
     try:
         groq_client = Groq(api_key=api_key)
     except Exception as e:
-        st.error(f"Groq istemcisi oluşturulamadı: {e}", icon="🔴")
+        st.error(f"Groq bağlantısı kurulamadı: {e}", icon="🔴")
+elif show_digest:
+    st.warning("⚠️  AI özet özelliği devre dışı — GROQ_API_KEY secrets'a eklenmemiş. Haberler normal görüntüleniyor.", icon="⚠️")
 
 # ──────────────────────────────────────────────────────────────
 # HABERLERİ ÇEKME
