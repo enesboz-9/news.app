@@ -1000,4 +1000,11 @@ st.markdown(f"""
     ÖNBELLEK: 30 DK &nbsp;|&nbsp; {total_news} HABER &nbsp;|&nbsp;
     ⭐ {len(st.session_state.favorites)} FAVORİ
 </div>
+<div style="text-align:center; padding:10px 0 24px;
+            font-family:'Share Tech Mono',monospace; font-size:0.7rem;
+            letter-spacing:3px;">
+    <span style="color:#2a4a6a;">GELİŞTİRİCİ &nbsp;▸&nbsp;</span>
+    <span style="color:#00ff8c; text-shadow:0 0 10px rgba(0,255,140,0.4);
+                 font-weight:bold; font-size:0.78rem;">ENES BOZ</span>
+</div>
 """, unsafe_allow_html=True)
