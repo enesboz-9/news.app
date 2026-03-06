@@ -17,6 +17,13 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from groq import Groq
 from gtts import gTTS
 
+# langdetect — dil tespiti için (pip install langdetect)
+try:
+    from langdetect import detect as langdetect_detect
+    LANGDETECT_AVAILABLE = True
+except ImportError:
+    LANGDETECT_AVAILABLE = False
+
 # ──────────────────────────────────────────────────────────────
 # İSTANBUL SAAT DİLİMİ
 # ──────────────────────────────────────────────────────────────
@@ -41,6 +48,8 @@ if "ai_analyses" not in st.session_state:
     st.session_state.ai_analyses = {}     # link → analiz metni
 if "tts_audio" not in st.session_state:
     st.session_state.tts_audio = {}       # key → base64 ses
+if "translations" not in st.session_state:
+    st.session_state.translations = {}    # link → çevrilmiş özet
 
 # ──────────────────────────────────────────────────────────────
 # KATEGORİ SEMBOL HARİTASI — haber kartlarında görünür
@@ -140,11 +149,13 @@ CATEGORIES = {
     ],
     "🤖 Yapay Zeka": [
         "https://techcrunch.com/category/artificial-intelligence/feed/",
+        "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml",
         "https://venturebeat.com/category/ai/feed/",
         "https://webrazzi.com/kategori/yapay-zeka/feed/",
     ],
     "💻 Yazılım Dünyası": [
         "https://techcrunch.com/feed/",
+        "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml",
         "https://www.theverge.com/rss/index.xml",
         "https://webrazzi.com/feed/",
         "https://www.donanimhaber.com/rss/tum/",
@@ -510,9 +521,27 @@ Talimatlar:
         return f"⚠️ Groq API hatası: {str(e)}"
 
 
-def groq_single_analysis(client: Groq, title: str, summary: str) -> str:
-    """Tek bir haber için 2-3 cümlelik Türkçe AI analizi üretir."""
-    prompt = f"""Bu haberi 2-3 cümleyle Türkçe olarak analiz et.
+def groq_single_analysis(client: Groq, title: str, summary: str, auto_translate: bool = False, src_lang: str = "tr") -> str:
+    """
+    Tek bir haber için 2-3 cümlelik AI analizi üretir.
+    auto_translate=True ve yabancı dil ise haberi önce Türkçe'ye çevirir,
+    sonra analiz eder.
+    """
+    is_foreign = src_lang not in ("tr",)
+    if auto_translate and is_foreign:
+        lang_label, _ = get_lang_label(src_lang)
+        prompt = f"""Aşağıdaki {lang_label} haberi Türkçe olarak çevir ve analiz et.
+
+Başlık: {title}
+Özet: {summary if summary else '(özet yok)'}
+
+Şu formatta yanıt ver:
+🌐 ÇEVİRİ: [Türkçe başlık]
+🔍 ANALİZ: [2-3 cümle Türkçe analiz — ne anlama geliyor, neden önemli]
+
+Sadece bu iki bölümü yaz."""
+    else:
+        prompt = f"""Bu haberi 2-3 cümleyle Türkçe olarak analiz et.
 Ne anlama geliyor, neden önemli ve olası sonuçları ne olabilir?
 
 Başlık: {title}
@@ -524,7 +553,7 @@ Sadece analizi yaz, başlık veya giriş cümlesi ekleme."""
             model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.5,
-            max_tokens=220,
+            max_tokens=280,
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
@@ -548,14 +577,74 @@ def text_to_speech_base64(text: str, lang: str = "tr") -> str | None:
 
 
 def detect_lang(text: str) -> str:
-    """Başlık metnine bakarak TTS dilini otomatik seçer."""
+    """
+    Başlık metninin dilini tespit eder.
+    Önce langdetect kütüphanesini dener, yoksa heuristik yöntem kullanır.
+    Döner: 'tr', 'en' veya ISO dil kodu
+    """
+    # Önce Türkçe karakterlere bak (en hızlı yöntem)
     turkish_chars = set("çğıöşüÇĞİÖŞÜ")
     if any(c in turkish_chars for c in text):
         return "tr"
-    tr_words = {"ve","ile","için","bir","bu","da","de","den","nin","nın","bu","şu"}
-    if set(text.lower().split()) & tr_words:
+    tr_words = {"ve","ile","için","bir","bu","da","de","den","nin","nın","şu","bu","o","ne"}
+    if len(set(text.lower().split()) & tr_words) >= 2:
         return "tr"
-    return "en"
+    # langdetect varsa kullan
+    if LANGDETECT_AVAILABLE:
+        try:
+            detected = langdetect_detect(text)
+            return detected  # 'en', 'fr', 'de' vb.
+        except Exception:
+            pass
+    return "en"  # varsayılan
+
+
+def get_lang_label(lang_code: str) -> tuple[str, str]:
+    """
+    Dil kodundan (ISO 639-1) görüntülenecek etiket ve renk döndürür.
+    Örn: 'en' → ('🇬🇧 EN', '#4a8fc4')
+    """
+    lang_map = {
+        "tr": ("🇹🇷 TR", "#e8b84b"),
+        "en": ("🇬🇧 EN", "#4a8fc4"),
+        "de": ("🇩🇪 DE", "#6a9f6a"),
+        "fr": ("🇫🇷 FR", "#9a6ac4"),
+        "ar": ("🇸🇦 AR", "#c46a6a"),
+        "ru": ("🇷🇺 RU", "#c48a4a"),
+        "es": ("🇪🇸 ES", "#c4a44a"),
+        "zh": ("🇨🇳 ZH", "#c46a8a"),
+        "ja": ("🇯🇵 JA", "#8ac4a4"),
+        "ko": ("🇰🇷 KO", "#a48ac4"),
+    }
+    return lang_map.get(lang_code, (f"🌐 {lang_code.upper()}", "#6a8a9a"))
+
+
+def groq_translate_summarize(client: Groq, title: str, summary: str, src_lang: str) -> str:
+    """
+    Yabancı dildeki haberi Türkçe'ye çevirir ve özetler.
+    'Tümünü Türkçe'ye Çevir' modu aktifken çağrılır.
+    """
+    lang_label, _ = get_lang_label(src_lang)
+    prompt = f"""Aşağıdaki {lang_label} haber başlığını ve özetini Türkçe olarak çevir ve 2-3 cümleyle özetle.
+
+Haber Başlığı: {title}
+Haber Özeti: {summary if summary else '(özet yok)'}
+
+Talimatlar:
+- Önce "📌 Başlık:" satırıyla Türkçe başlığı yaz
+- Sonra "📝 Özet:" satırıyla kısa Türkçe özeti yaz
+- Sade ve anlaşılır bir dil kullan
+- Sadece bu iki bölümü yaz, başka hiçbir şey ekleme"""
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.4,
+            max_tokens=250,
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        return f"⚠️ Çeviri yapılamadı: {str(e)}"
 
 
 # ──────────────────────────────────────────────────────────────
@@ -602,6 +691,13 @@ with st.sidebar:
     show_sentiment = st.toggle("🎯 Sentiment Analizi",       value=True)
     show_tts       = st.toggle("🔊 Sesli Dinleme (TTS)",     value=False)
     show_favorites = st.toggle("⭐ Favorilerim Paneli",      value=False)
+
+    st.markdown('<div style="border-top:1px solid rgba(0,180,255,0.15);margin:10px 0 6px;"></div>', unsafe_allow_html=True)
+    st.markdown('<p style="color:#5a8a7a;font-size:0.72rem;letter-spacing:1px;font-family:\'Share Tech Mono\',monospace;">🌐 ÇEVİRİ AYARLARI</p>', unsafe_allow_html=True)
+
+    # Tümünü Türkçe'ye Çevir — yabancı haberleri otomatik analiz+çeviri yapar
+    auto_translate = st.toggle("🔄 Yabancı Haberleri Türkçe'ye Çevir", value=False)
+    show_lang_badge = st.toggle("🏷️ Dil Etiketini Göster", value=True)
 
     st.markdown('<div style="border-top:1px solid rgba(0,180,255,0.15);margin:14px 0;"></div>', unsafe_allow_html=True)
 
@@ -754,6 +850,11 @@ for tab, category in zip(tabs, active_cats_list):
             s_key = item["sentiment"]
             s     = SENTIMENT_STYLES.get(s_key, SENTIMENT_STYLES["nötr"])
 
+            # ── Dil tespiti ──
+            item_lang = detect_lang(item["title"] + " " + item["summary"])
+            is_foreign = item_lang not in ("tr",)
+            lang_label_text, lang_color = get_lang_label(item_lang)
+
             # Favori durumu
             is_fav = link in st.session_state.favorites
 
@@ -769,12 +870,23 @@ for tab, category in zip(tabs, active_cats_list):
                 badge_html = ""
                 dot_html   = ""
 
+            # Dil etiketi HTML
+            if show_lang_badge:
+                lang_badge_html = (
+                    f'<span class="sentiment-badge" '
+                    f'style="color:{lang_color};background:rgba(74,143,196,0.08);'
+                    f'border:1px solid {lang_color}44;margin-left:4px;">'
+                    f'{lang_label_text}</span>'
+                )
+            else:
+                lang_badge_html = ""
+
             # ── Kart ──
             st.markdown(f"""
             <div class="news-card">
                 <div class="news-card-meta">
                     <span>{cat_symbol} {source_str}</span>
-                    &nbsp;|&nbsp; {time_str} İST {badge_html}
+                    &nbsp;|&nbsp; {time_str} İST {badge_html}{lang_badge_html}
                 </div>
                 <div class="news-card-title">{dot_html}{item['title']}</div>
                 <div class="news-card-summary">{item['summary'] or 'Özet mevcut değil.'}</div>
@@ -782,7 +894,7 @@ for tab, category in zip(tabs, active_cats_list):
             """, unsafe_allow_html=True)
 
             # ── Buton satırı ──
-            b1, b2, b3, b4, _ = st.columns([0.9, 1.1, 1.1, 1.3, 3.5])
+            b1, b2, b3, b4, b5 = st.columns([0.9, 1.1, 1.1, 1.3, 1.4])
 
             with b1:
                 st.link_button("↗ GİT", link)
@@ -802,17 +914,45 @@ for tab, category in zip(tabs, active_cats_list):
                     if st.button("🤖 ANALİZ", key=f"ai_{category}_{idx}"):
                         with st.spinner("AI analiz yapıyor..."):
                             st.session_state.ai_analyses[link] = groq_single_analysis(
-                                groq_client, item["title"], item["summary"]
+                                groq_client, item["title"], item["summary"],
+                                auto_translate=auto_translate, src_lang=item_lang,
                             )
                 else:
                     st.markdown('<span style="color:#1a3a5a;font-size:0.65rem;font-family:\'Share Tech Mono\',monospace;">[KEY YOK]</span>', unsafe_allow_html=True)
 
+            with b4:
+                # 🔄 Tek haber çeviri butonu — yabancı haberlerde göster
+                if groq_client and is_foreign and not auto_translate:
+                    if st.button("🔄 ÇEVİR", key=f"trans_{category}_{idx}"):
+                        with st.spinner(f"🌐 {lang_label_text} → Türkçe çevriliyor..."):
+                            st.session_state.translations[link] = groq_translate_summarize(
+                                groq_client, item["title"], item["summary"], src_lang=item_lang
+                            )
+
+            # Çeviri sonucu göster
+            if link in st.session_state.translations:
+                st.markdown(f"""
+                <div style="background:rgba(74,143,196,0.06);border:1px solid rgba(74,143,196,0.25);
+                            border-left:3px solid #4a8fc4;border-radius:4px;
+                            padding:14px 18px;margin:8px 0 4px;">
+                    <div style="font-family:'Share Tech Mono',monospace;color:#4a8fc4;
+                                font-size:0.82rem;letter-spacing:2px;margin-bottom:10px;">
+                        ◈ TÜRKÇE ÇEVİRİ &nbsp;
+                        <span style="font-size:0.62rem;opacity:0.6;">{lang_label_text} → 🇹🇷 TR</span>
+                    </div>
+                    <p style="color:#a0c8d8;font-size:0.85rem;line-height:1.75;white-space:pre-line;">{st.session_state.translations[link]}</p>
+                </div>
+                """, unsafe_allow_html=True)
+
             # AI Analiz sonucu
             if link in st.session_state.ai_analyses:
+                # Yabancı dil + auto_translate aktifse farklı başlık göster
+                box_title = "◈ AI ANALİZİ + ÇEVİRİ" if (auto_translate and is_foreign) else "◈ AI ANALİZİ"
+                box_color = "#4a8fc4" if (auto_translate and is_foreign) else "#00ff8c"
                 st.markdown(f"""
-                <div class="ai-summary-box">
-                    <h3>◈ AI ANALİZİ</h3>
-                    <p>{st.session_state.ai_analyses[link]}</p>
+                <div class="ai-summary-box" style="border-color:rgba({"74,143,196" if auto_translate and is_foreign else "0,255,140"},0.25);">
+                    <h3 style="color:{box_color};">{box_title}</h3>
+                    <p style="white-space:pre-line;">{st.session_state.ai_analyses[link]}</p>
                 </div>
                 """, unsafe_allow_html=True)
 
