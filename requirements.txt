@@ -1,0 +1,5 @@
+streamlit
+groq
+feedparser
+pandas
+python-dotenv
