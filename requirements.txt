@@ -3,3 +3,4 @@ feedparser
 groq
 pytz
 gtts
+langdetect
