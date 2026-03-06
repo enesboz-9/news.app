@@ -6,6 +6,7 @@
 ╚══════════════════════════════════════════════════════════════╝
 """
 
+import pytz
 import streamlit as st
 import feedparser
 import time
@@ -13,6 +14,9 @@ import re
 from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from groq import Groq
+
+# İstanbul saat dilimi
+ISTANBUL_TZ = pytz.timezone("Europe/Istanbul")
 
 # ──────────────────────────────────────────────────────────────
 # SAYFA YAPILANDIRMASI
@@ -251,26 +255,35 @@ CATEGORIES = {
     "📈 Borsa İstanbul": [
         "https://feeds.bbci.co.uk/turkce/ekonomi/rss.xml",
         "https://www.haberturk.com/rss/ekonomi.xml",
+        "https://www.bloomberght.com/rss",
+        "https://www.dunya.com/rss/anasayfa",
     ],
     "🌍 Global Ekonomi": [
         "https://feeds.bbci.co.uk/news/business/rss.xml",
         "https://www.reuters.com/rssFeed/businessNews",
+        "https://www.ekonomim.com/rss",
     ],
     "🛡️ Savunma Sanayii": [
         "https://www.defenseone.com/rss/all/",
         "https://breakingdefense.com/feed/",
+        "https://www.savunmasanayii.com/tr/rss",
+        "https://www.milliyet.com.tr/rss/rssNew/gundemRss.xml",
     ],
     "💻 Yazılım Dünyası": [
         "https://techcrunch.com/feed/",
         "https://www.theverge.com/rss/index.xml",
+        "https://webrazzi.com/feed/",
+        "https://www.donanimhaber.com/rss/tum/",
     ],
     "⚡ Elektrik-Elektronik": [
         "https://spectrum.ieee.org/rss/fulltext",
         "https://www.eetimes.com/rss/",
+        "https://chip.com.tr/feed/",
     ],
     "🤖 Yapay Zeka": [
         "https://techcrunch.com/category/artificial-intelligence/feed/",
         "https://venturebeat.com/category/ai/feed/",
+        "https://webrazzi.com/kategori/yapay-zeka/feed/",
     ],
     "🚀 Uzay Bilimleri": [
         "https://www.space.com/feeds/all",
@@ -278,15 +291,38 @@ CATEGORIES = {
     ],
     "⚽ Spor": [
         "https://feeds.bbci.co.uk/sport/rss.xml",
-        "https://www.goal.com/feeds/tr/news",
+        "https://www.fanatik.com.tr/rss/gundem.xml",
+        "https://www.sporx.com/rss/haberler.xml",
+        "https://www.ntvspor.net/rss",
     ],
     "🏥 Sağlık": [
         "https://feeds.webmd.com/rss/rss.aspx?RSSSource=RSS_PUBLIC",
         "https://www.medicalnewstoday.com/rss",
+        "https://www.sabah.com.tr/rss/saglik.xml",
     ],
     "🇹🇷 Türkiye Gündemi": [
         "https://www.trthaber.com/sondakika.rss",
         "https://www.sabah.com.tr/rss/anasayfa.xml",
+        "https://www.hurriyet.com.tr/rss/anasayfa",
+        "https://www.milliyet.com.tr/rss/rssNew/gundemRss.xml",
+        "https://www.cumhuriyet.com.tr/rss/son_dakika.xml",
+        "https://www.ntv.com.tr/son-dakika.rss",
+        "https://www.haberturk.com/rss/anasayfa.xml",
+        "https://www.sozcu.com.tr/feed/",
+    ],
+    "💰 Ekonomi & Finans TR": [
+        "https://www.bloomberght.com/rss",
+        "https://www.haberturk.com/rss/ekonomi.xml",
+        "https://www.dunya.com/rss/anasayfa",
+        "https://www.sabah.com.tr/rss/ekonomi.xml",
+        "https://www.hurriyet.com.tr/rss/ekonomi",
+    ],
+    "🔬 Bilim & Teknoloji TR": [
+        "https://webrazzi.com/feed/",
+        "https://www.donanimhaber.com/rss/tum/",
+        "https://chip.com.tr/feed/",
+        "https://www.ntv.com.tr/teknoloji.rss",
+        "https://shiftdelete.net/feed",
     ],
 }
 
@@ -397,7 +433,7 @@ Talimatlar:
 
     try:
         response = client.chat.completions.create(
-            model="llama-3.1-70b-versatile",
+            model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.6,
             max_tokens=400,
@@ -418,7 +454,7 @@ Başlık: {title}
 Sadece analizi yaz, başlık veya giriş cümlesi ekleme."""
     try:
         response = client.chat.completions.create(
-            model="llama-3.1-70b-versatile",
+            model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.5,
             max_tokens=200,
@@ -491,15 +527,16 @@ with st.sidebar:
     show_digest = st.toggle("🤖 Günün Özetini Göster", value=True)
 
     st.markdown('<div style="border-top:1px solid rgba(0,180,255,0.15);margin:16px 0;"></div>', unsafe_allow_html=True)
-    st.markdown('<p style="color:#1a3a5a;font-size:0.65rem;font-family:\'Share Tech Mono\',monospace;line-height:1.8;">SON 24 SAAT FİLTRE AKTİF<br>KAYNAK: RSS BESLEMELERİ<br>AI: LLAMA-3.1-70B</p>', unsafe_allow_html=True)
+    st.markdown('<p style="color:#1a3a5a;font-size:0.65rem;font-family:\'Share Tech Mono\',monospace;line-height:1.8;">SON 24 SAAT FİLTRE AKTİF<br>KAYNAK: RSS BESLEMELERİ<br>AI: LLAMA-3.3-70B<br>SAAT: İSTANBUL (UTC+3)</p>', unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────
 # ANA BAŞLIK
 # ──────────────────────────────────────────────────────────────
+now_ist = datetime.now(ISTANBUL_TZ)
 st.markdown(f"""
 <div class="terminal-header">
     <h1>⚡ AI HABER TERMİNALİ</h1>
-    <p>SISTEM ZAMANI: {datetime.now().strftime('%d.%m.%Y %H:%M:%S')} &nbsp;|&nbsp;
+    <p>İSTANBUL: {now_ist.strftime('%d.%m.%Y %H:%M:%S')} (UTC+3) &nbsp;|&nbsp;
        SON 24 SAAT &nbsp;|&nbsp; {len(selected)} KATEGORİ SEÇİLİ</p>
 </div>
 """, unsafe_allow_html=True)
@@ -588,13 +625,14 @@ for tab, category in zip(tabs, active_cats_list):
 
         # ── HABER LİSTESİ ─────────────────────────────────────
         for idx, item in enumerate(news_items):
-            time_str = item["published"].strftime("%d.%m %H:%M")
+            pub_ist = item["published"].astimezone(ISTANBUL_TZ)
+            time_str = pub_ist.strftime("%d.%m %H:%M")
             source_str = item["source"][:30] if item["source"] else "?"
 
             st.markdown(f"""
             <div class="news-card">
                 <div class="news-card-meta">
-                    <span>▸ {source_str}</span> &nbsp;|&nbsp; {time_str} UTC
+                    <span>▸ {source_str}</span> &nbsp;|&nbsp; {time_str} İST
                 </div>
                 <div class="news-card-title">{item['title']}</div>
                 <div class="news-card-summary">{item['summary'] or 'Özet mevcut değil.'}</div>
@@ -633,8 +671,8 @@ st.markdown(f"""
             border-top:1px solid rgba(0,180,255,0.1);
             font-family:'Share Tech Mono',monospace; font-size:0.65rem;
             color:#1a3a5a; letter-spacing:2px;">
-    AI HABER TERMİNALİ &nbsp;|&nbsp; GROQ LLAMA-3.1-70B &nbsp;|&nbsp;
-    {datetime.now().strftime('%Y')} &nbsp;|&nbsp;
+    AI HABER TERMİNALİ &nbsp;|&nbsp; GROQ LLAMA-3.3-70B &nbsp;|&nbsp;
+    {datetime.now(ISTANBUL_TZ).strftime('%Y')} &nbsp;|&nbsp;
     ÖNBELLEK: 30 DK &nbsp;|&nbsp; {total_news} HABER İŞLENDİ
 </div>
 """, unsafe_allow_html=True)
