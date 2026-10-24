@@ -1,0 +1,30 @@
+# Her 30 dakikada sayfaları arka planda yeniler; ziyaretçi yenilemeyi beklemez.
+# Gerekli: depo Settings > Secrets and variables > Actions > "CRON_SECRET" (Vercel'deki ile aynı değer)
+name: Sayfaları yenile
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  yenile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SITE_URL: https://haberai-wheat.vercel.app
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+    steps:
+      - name: Sayfaları sırayla yenile
+        run: |
+          if [ -z "$CRON_SECRET" ]; then echo "CRON_SECRET tanımlı değil"; exit 1; fi
+          slugs=$(curl -fsS -m 30 -H "Authorization: Bearer $CRON_SECRET" "$SITE_URL/api/yenile?liste=1" | jq -r '.slugs[]')
+          fail=0
+          for s in $slugs; do
+            out=$(curl -sS -m 90 -H "Authorization: Bearer $CRON_SECRET" "$SITE_URL/api/yenile?slug=$s" || echo '{"status":0}')
+            echo "$s -> $out"
+            echo "$out" | jq -e '.status == 200' >/dev/null || fail=$((fail+1))
+            sleep 3   # Groq hız sınırına takılmamak için sayfalar arasında bekle
+          done
+          echo "Başarısız: $fail"
+          [ "$fail" -lt 5 ]

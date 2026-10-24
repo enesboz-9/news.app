@@ -1,0 +1,85 @@
+{
+  "framework": "nextjs",
+  "crons": [
+    {
+      "path": "/api/yenile?slug=ana",
+      "schedule": "0,30 * * * *"
+    },
+    {
+      "path": "/api/yenile?slug=turkiye-gundemi",
+      "schedule": "1,31 * * * *"
+    },
+    {
+      "path": "/api/yenile?slug=borsa-istanbul",
+      "schedule": "2,32 * * * *"
+    },
+    {
+      "path": "/api/yenile?slug=spor",
+      "schedule": "3,33 * * * *"
+    },
+    {
+      "path": "/api/yenile?slug=global-ekonomi",
+      "schedule": "4,34 * * * *"
+    },
+    {
+      "path": "/api/yenile?slug=ekonomi-finans",
+      "schedule": "5,35 * * * *"
+    },
+    {
+      "path": "/api/yenile?slug=savunma-sanayii",
+      "schedule": "6,36 * * * *"
+    },
+    {
+      "path": "/api/yenile?slug=yapay-zeka",
+      "schedule": "7,37 * * * *"
+    },
+    {
+      "path": "/api/yenile?slug=yazilim-dunyasi",
+      "schedule": "8,38 * * * *"
+    },
+    {
+      "path": "/api/yenile?slug=bilim-teknoloji",
+      "schedule": "9,39 * * * *"
+    },
+    {
+      "path": "/api/yenile?slug=uzay-bilimleri",
+      "schedule": "10,40 * * * *"
+    },
+    {
+      "path": "/api/yenile?slug=saglik",
+      "schedule": "11,41 * * * *"
+    },
+    {
+      "path": "/api/yenile?slug=oyun-dunyasi",
+      "schedule": "12,42 * * * *"
+    },
+    {
+      "path": "/api/yenile?slug=cevre-enerji",
+      "schedule": "13,43 * * * *"
+    },
+    {
+      "path": "/api/yenile?slug=dunya-gundemi",
+      "schedule": "14,44 * * * *"
+    },
+    {
+      "path": "/api/yenile?slug=siyaset",
+      "schedule": "15,45 * * * *"
+    },
+    {
+      "path": "/api/yenile?slug=otomotiv",
+      "schedule": "16,46 * * * *"
+    },
+    {
+      "path": "/api/yenile?slug=turizm-seyahat",
+      "schedule": "17,47 * * * *"
+    },
+    {
+      "path": "/api/yenile?slug=dunya-basini",
+      "schedule": "18,48 * * * *"
+    },
+    {
+      "path": "/api/yenile?slug=kultur-sanat",
+      "schedule": "19,49 * * * *"
+    }
+  ]
+}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { singleAnalysis } from "@/lib/groq";
 
 export const runtime = "nodejs";
+export const maxDuration = 30;
 
 // Not: Veri tabanı olmadığı için önbellek ve hız sınırı sunucu örneği başına çalışır (en iyi çaba).
 const cache = new Map<string, string>();

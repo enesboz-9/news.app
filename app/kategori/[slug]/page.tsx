@@ -9,6 +9,7 @@ import { SITE_NAME, siteUrl } from "@/lib/site";
 import NewsList from "@/components/NewsList";
 
 export const revalidate = 1800;
+export const maxDuration = 60; // yapay zekâ çağrıları sırasında sayfa üretimi zaman aşımına uğramasın
 export const dynamicParams = false;
 
 export function generateStaticParams() {

@@ -6,6 +6,7 @@ import { formatIst } from "@/lib/format";
 import { SITE_NAME, SITE_TAGLINE, siteUrl } from "@/lib/site";
 
 export const revalidate = 1800;
+export const maxDuration = 60; // yapay zekâ çağrıları sırasında sayfa üretimi zaman aşımına uğramasın
 
 export default async function Home() {
   const cats = HOME_SLUGS.map((s) => getCategory(s)!).filter(Boolean);
