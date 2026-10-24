@@ -94,8 +94,7 @@ Yalnızca şu biçimde bir JSON dizisi döndür, başka hiçbir şey yazma: [{"n
 // Başlıkların Borsa İstanbul, piyasalar ve emtialar üzerindeki olası etkisini sınıflandırır. Hata olursa null döner.
 export async function marketImpact(headlines: string[]): Promise<Sentiment[] | null> {
   if (headlines.length === 0) return [];
-  const list = headlines.map((h, i) => `${i}. ${h}`).join("
-");
+  const list = headlines.map((h, i) => `${i}. ${h}`).join("\n");
   const prompt = `Aşağıdaki haber başlıklarının her birini, Borsa İstanbul'u, finansal piyasaları (döviz, tahvil, faiz) ve emtiaları (altın, petrol, gümüş vb.) nasıl etkileyebileceğine göre sınıflandır.
 - "pozitif": piyasalar, fiyatlar veya yatırımcı güveni için olumlu
 - "negatif": piyasalar, fiyatlar veya yatırımcı güveni için olumsuz
