@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CATEGORIES, getCategory } from "@/lib/categories";
 import { getCategoryNews } from "@/lib/news";
+import { byScore } from "@/lib/rank";
 import { dailyDigest, marketImpact, translateItems } from "@/lib/groq";
 import { formatIstLong } from "@/lib/format";
 import { SITE_NAME, siteUrl } from "@/lib/site";
@@ -32,7 +33,8 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   const cat = getCategory(slug);
   if (!cat) notFound();
 
-  let items = await getCategoryNews(cat);
+  // Önem sırasına göre dizilir: çeviri ve piyasa etiketi en önemli haberlere öncelikle uygulanır.
+  let items = (await getCategoryNews(cat)).sort(byScore);
   const [translated, digest] = await Promise.all([translateItems(items, 20), dailyDigest(items.map((i) => i.title), cat.name)]);
   items = translated;
   // Ekonomi kategorilerinde etiket, haberin piyasalara ve emtialara olası etkisine göre yapay zekâ ile verilir.
@@ -47,7 +49,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   const aiEnabled = Boolean(process.env.GROQ_API_KEY);
   // Yapay zekâ özeti yoksa en çok kaynağın verdiği 3 haberin başlığı gösterilir; kutu hiç kaybolmaz.
   const fallbackDigest = [...items]
-    .sort((a, b) => (b.related?.length ?? 0) - (a.related?.length ?? 0))
+    .sort(byScore)
     .slice(0, 3)
     .map((i) => i.title);
 

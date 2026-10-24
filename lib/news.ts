@@ -2,6 +2,7 @@ import Parser from "rss-parser";
 import { Category } from "./categories";
 import { detectLang } from "./lang";
 import { quickSentiment, Sentiment } from "./sentiment";
+import { byScore } from "./rank";
 
 export type NewsItem = {
   title: string;
@@ -15,6 +16,7 @@ export type NewsItem = {
   summaryOriginal?: string;
   image?: string; // haber görseli (https)
   related?: { source: string; link: string }[]; // aynı olayı veren diğer kaynaklar
+  score?: number; // önem puanı (yüksek = daha önemli)
 };
 
 const REVALIDATE_SECONDS = 1800; // 30 dk
@@ -135,6 +137,43 @@ async function fetchFeed(url: string, cutoff: number): Promise<NewsItem[]> {
   }
 }
 
+// --- Önem puanı ---
+// Çok sayıda kaynağın verdiği, büyük olay içeren, yeni haberler öne çıkar; tarif, rehber gibi hafif içerik ve yerel kaza haberleri geriye düşer.
+const BIG = /(deprem.{0,40}büyüklüğünde|büyüklüğünde.{0,40}deprem)|ateşkes|savaş ilan|faiz kararı|faizi (sabit|artırdı|indirdi)|kabine toplantısı|enflasyon (rakam|verisi)|seçim sonuç|istifa etti|olağanüstü hal|ceasefire|rate decision|state of emergency|resigns?/iu;
+const BOOST = /açıkladı|açıklandı|duyurdu|imzalandı|onaylandı|anlaşma|zirve|rekor|operasyon|atandı|yasa teklifi|cumhurbaşkan|merkez bankası|announces?|launch(es|ed)?|record|agreement|deal|breakthrough/iu;
+const SOFT = /tarifi|tarif |nasıl yapılır|ipucu|püf noktası|önerileri|listesi|rehberi|diyet|güzellik|indirim|kampanya|fırsat|galeri|horoskop|quiz|how to |best .{0,20} (deals|to buy)|recipe/iu;
+const LOCAL_INCIDENT = /kaza|çarpıştı|devrildi|yaralandı|gözaltına|tutuklandı|cinayet|kavga|crash|stabbing/iu;
+
+function scoreItem(it: NewsItem, now: number): number {
+  let s = 0;
+  s += (it.related?.length ?? 0) * 3; // aynı olayı veren her ek kaynak
+  if (BIG.test(it.title)) s += 4;
+  if (BOOST.test(it.title)) s += 2;
+  if (SOFT.test(it.title)) s -= 4;
+  if (LOCAL_INCIDENT.test(it.title) && !BIG.test(it.title)) s -= 2;
+  if (/\d{2,}\s*(kişi|can)\s*(hayatını kaybetti|öldü)|\d{2,}\s*ölü/iu.test(it.title)) s += 4; // çok sayıda can kaybı
+  if (it.image) s += 0.5;
+  const ageH = Math.max(0, (now - Date.parse(it.published)) / 3600_000);
+  s -= Math.min(ageH, 48) * 0.12; // taze haber avantajlı
+  return Math.round(s * 100) / 100;
+}
+
+// En yüksek puanlı n haberi seçer; tek kaynağın listeyi doldurmaması için kaynak başına en fazla 2 haber alınır.
+export function pickTop(items: NewsItem[], n: number): NewsItem[] {
+  const sorted = [...items].sort(byScore);
+  const used = new Map<string, number>();
+  const out: NewsItem[] = [];
+  for (const it of sorted) {
+    if (out.length >= n) break;
+    const c = used.get(it.source) ?? 0;
+    if (c >= 2) continue;
+    used.set(it.source, c + 1);
+    out.push(it);
+  }
+  for (const it of sorted) if (out.length < n && !out.includes(it)) out.push(it);
+  return out;
+}
+
 export async function getCategoryNews(cat: Category): Promise<NewsItem[]> {
   const cutoff = Date.now() - (cat.windowHours ?? 24) * 60 * 60 * 1000;
   const lists = await Promise.all(cat.feeds.map((u) => fetchFeed(u, cutoff)));
@@ -163,5 +202,6 @@ export async function getCategoryNews(cat: Category): Promise<NewsItem[]> {
     const rel = g.rep.related ?? (g.rep.related = []);
     if (it.source !== g.rep.source && !rel.some((r) => r.source === it.source)) rel.push({ source: it.source, link: it.link });
   }
-  return groups.map((g) => g.rep).slice(0, 60);
+  const now = Date.now();
+  return groups.map((g) => ({ ...g.rep, score: scoreItem(g.rep, now) })).slice(0, 60);
 }
