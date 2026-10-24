@@ -54,6 +54,18 @@ export default function NewsCard({ item, categoryName, categoryEmoji, aiEnabled,
       </div>
       <h3 className="news-title">{showOrig && item.titleOriginal ? item.titleOriginal : item.title}</h3>
       {(showOrig ? item.summaryOriginal : item.summary) && <p className="news-summary">{showOrig ? item.summaryOriginal : item.summary}</p>}
+      {item.related && item.related.length > 0 && (
+        <p className="also">
+          <strong>+{item.related.length} kaynak daha:</strong>{" "}
+          {item.related.slice(0, 4).map((r, n) => (
+            <span key={r.link}>
+              {n > 0 && ", "}
+              <a href={r.link} target="_blank" rel="noopener noreferrer">{r.source}</a>
+            </span>
+          ))}
+          {item.related.length > 4 && ` ve ${item.related.length - 4} kaynak`}
+        </p>
+      )}
       <div className="news-actions">
         <a className="btn primary" href={item.link} target="_blank" rel="noopener noreferrer">Habere git</a>
         <button
