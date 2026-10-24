@@ -81,15 +81,52 @@ async function chat(prompt: string, temperature: number, maxTokens: number): Pro
   });
 }
 
-// Türkçe olmayan haberlerin başlık ve özetini toplu çevirir (en çok `max` haber). Hata olursa özgün metin kalır.
-export async function translateItems(items: NewsItem[], max = 20): Promise<NewsItem[]> {
+// Aynı başlık tekrar çevrilmesin diye sunucu örneği başına önbellek (sayfa yenilendikçe Groq çağrısı azalır).
+const trCache = new Map<string, { t: string; s?: string }>();
+
+// Türkçe olmayan haberlerin başlığını Türkçeye çevirir (en çok `max` haber).
+// İlk `fullMax` yeni haberin özeti de çevrilir; kalanlarda yalnızca başlık çevrilir (az jeton, hız sınırına takılmaz).
+// Hata olursa özgün metin kalır.
+export async function translateItems(items: NewsItem[], max = 20, fullMax = 12): Promise<NewsItem[]> {
   const idx = items.map((it, i) => (it.lang !== "tr" ? i : -1)).filter((i) => i >= 0).slice(0, max);
   if (idx.length === 0) return items;
   const out = items.slice();
-  const chunks: number[][] = [];
-  for (let i = 0; i < idx.length; i += 10) chunks.push(idx.slice(i, i + 10));
-  await Promise.all(
-    chunks.map(async (ch) => {
+
+  const apply = (ix: number, t: string, sum?: string) => {
+    const src = items[ix];
+    if (!t.trim() || t.trim() === src.title) return;
+    out[ix] = {
+      ...src,
+      title: t.trim(),
+      // Özeti çevrilmeyen haberde yabancı dildeki özet Türkçe başlığın altında kalmasın; özgün metin "Orijinalini göster" ile görülür.
+      summary: sum !== undefined ? (sum.trim() || src.summary) : "",
+      titleOriginal: src.title,
+      summaryOriginal: src.summary,
+    };
+  };
+
+  const todo: number[] = [];
+  for (const ix of idx) {
+    const hit = trCache.get(items[ix].title);
+    if (hit) apply(ix, hit.t, hit.s);
+    else todo.push(ix);
+  }
+  const remember = (ix: number, t: string, sum?: string) => {
+    if (trCache.size > 3000) trCache.clear();
+    trCache.set(items[ix].title, { t, s: sum });
+  };
+
+  const full = todo.slice(0, fullMax);
+  const titlesOnly = todo.slice(fullMax);
+  const split = (arr: number[], n: number) => {
+    const c: number[][] = [];
+    for (let i = 0; i < arr.length; i += n) c.push(arr.slice(i, i + n));
+    return c;
+  };
+
+  const jobs: Promise<void>[] = [];
+  for (const ch of split(full, 10)) {
+    jobs.push((async () => {
       const list = ch.map((ix, n) => ({ n, t: items[ix].title, s: items[ix].summary.slice(0, 220) }));
       const prompt = `Aşağıdaki yabancı dildeki haber başlıklarını ve özetlerini doğal, akıcı Türkçeye çevir. Kişi, marka ve kurum adlarını değiştirme; anlam ekleme veya çıkarma.
 
@@ -102,18 +139,34 @@ Yalnızca şu biçimde bir JSON dizisi döndür, başka hiçbir şey yazma: [{"n
       for (const r of arr as { n?: number; t?: string; s?: string }[]) {
         if (typeof r?.n !== "number" || typeof r.t !== "string" || !r.t.trim()) continue;
         const ix = ch[r.n];
-        if (ix === undefined || r.t.trim() === items[ix].title) continue;
-        const src = items[ix];
-        out[ix] = {
-          ...src,
-          title: r.t.trim(),
-          summary: typeof r.s === "string" && r.s.trim() ? r.s.trim() : src.summary,
-          titleOriginal: src.title,
-          summaryOriginal: src.summary,
-        };
+        if (ix === undefined) continue;
+        const sum = typeof r.s === "string" ? r.s : "";
+        apply(ix, r.t, sum);
+        remember(ix, r.t.trim(), sum);
       }
-    })
-  );
+    })());
+  }
+  for (const ch of split(titlesOnly, 25)) {
+    jobs.push((async () => {
+      const list = ch.map((ix, n) => ({ n, t: items[ix].title }));
+      const prompt = `Aşağıdaki yabancı dildeki haber başlıklarını doğal, akıcı ve kısa Türkçeye çevir. Kişi, marka ve kurum adlarını değiştirme; anlam ekleme veya çıkarma.
+
+Girdi (JSON):
+${JSON.stringify(list)}
+
+Yalnızca şu biçimde bir JSON dizisi döndür, başka hiçbir şey yazma: [{"n":0,"t":"Türkçe başlık"}]`;
+      const arr = parseArray(await chat(prompt, 0.2, 1600));
+      if (!arr) return;
+      for (const r of arr as { n?: number; t?: string }[]) {
+        if (typeof r?.n !== "number" || typeof r.t !== "string" || !r.t.trim()) continue;
+        const ix = ch[r.n];
+        if (ix === undefined) continue;
+        apply(ix, r.t);
+        remember(ix, r.t.trim());
+      }
+    })());
+  }
+  await Promise.all(jobs);
   return out;
 }
 

@@ -35,7 +35,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
 
   // Önem sırasına göre dizilir: çeviri ve piyasa etiketi en önemli haberlere öncelikle uygulanır.
   let items = (await getCategoryNews(cat)).sort(byScore);
-  const [translated, digest] = await Promise.all([translateItems(items, 20), dailyDigest(items.map((i) => i.title), cat.name)]);
+  const [translated, digest] = await Promise.all([translateItems(items, 40, 12), dailyDigest(items.map((i) => i.title), cat.name)]);
   items = translated;
   // Ekonomi kategorilerinde etiket, haberin piyasalara ve emtialara olası etkisine göre yapay zekâ ile verilir.
   // Yapay zekâ yanıt vermezse (hız sınırı, build vb.) anahtar kelimeye dayalı etiketler (quickSentiment) gösterilir.

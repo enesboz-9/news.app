@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Newsreader } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
+import ThemeToggle from "@/components/ThemeToggle";
 import Footer from "@/components/Footer";
 import { SITE_NAME, SITE_TAGLINE, siteUrl } from "@/lib/site";
 
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Header />
         <main className="wrap">{children}</main>
         <Footer />
+        <ThemeToggle />
       </body>
     </html>
   );

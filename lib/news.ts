@@ -95,6 +95,31 @@ function pickImage(e: any): string | undefined {
   return u?.replace(/^http:\/\//i, "https://");
 }
 
+// Besleme başlığı yerine okunur kısa kaynak adı (filtre listesi ve kartlarda daha temiz görünür).
+const HOST_NAMES: Record<string, string> = {
+  "feeds.bbci.co.uk": "BBC", "techcrunch.com": "TechCrunch", "rss.nytimes.com": "New York Times", "theguardian.com": "The Guardian",
+  "aljazeera.com": "Al Jazeera", "rss.dw.com": "DW", "france24.com": "France 24", "feeds.npr.org": "NPR", "rss.cnn.com": "CNN",
+  "feeds.skynews.com": "Sky News", "feeds.washingtonpost.com": "Washington Post", "lemonde.fr": "Le Monde", "spiegel.de": "Der Spiegel",
+  "independent.co.uk": "The Independent", "cnbc.com": "CNBC", "feeds.content.dowjones.io": "MarketWatch", "economist.com": "The Economist",
+  "finance.yahoo.com": "Yahoo Finance", "feeds.arstechnica.com": "Ars Technica", "arstechnica.com": "Ars Technica", "wired.com": "Wired",
+  "theverge.com": "The Verge", "engadget.com": "Engadget", "technologyreview.com": "MIT Technology Review", "sciencedaily.com": "ScienceDaily",
+  "newscientist.com": "New Scientist", "phys.org": "Phys.org", "hnrss.org": "Hacker News", "theregister.com": "The Register",
+  "github.blog": "GitHub Blog", "stackoverflow.blog": "Stack Overflow", "feed.infoq.com": "InfoQ", "venturebeat.com": "VentureBeat",
+  "openai.com": "OpenAI", "blog.google": "Google", "huggingface.co": "Hugging Face", "blogs.nvidia.com": "NVIDIA", "nasa.gov": "NASA",
+  "universetoday.com": "Universe Today", "esa.int": "ESA", "space.com": "Space.com", "spacenews.com": "SpaceNews", "pcgamer.com": "PC Gamer",
+  "gamespot.com": "GameSpot", "polygon.com": "Polygon", "carbonbrief.org": "Carbon Brief", "defensenews.com": "Defense News",
+  "twz.com": "The War Zone", "breakingdefense.com": "Breaking Defense", "ign.com": "IGN", "kotaku.com": "Kotaku", "eurogamer.net": "Eurogamer",
+  "cleantechnica.com": "CleanTechnica", "medicalnewstoday.com": "Medical News Today", "webmd.com": "WebMD", "feeds.webmd.com": "WebMD",
+};
+function hostName(url: string): string | undefined {
+  try {
+    const h = new URL(url).hostname.replace(/^www\./, "");
+    return HOST_NAMES[h] ?? HOST_NAMES[h.split(".").slice(-2).join(".")];
+  } catch {
+    return undefined;
+  }
+}
+
 async function fetchFeed(url: string, cutoff: number): Promise<NewsItem[]> {
   try {
     const res = await fetch(url, {
@@ -104,7 +129,7 @@ async function fetchFeed(url: string, cutoff: number): Promise<NewsItem[]> {
     });
     if (!res.ok) return [];
     const feed = await parser.parseString(await res.text());
-    const source = clean(feed.title, 60) || new URL(url).hostname;
+    const source = hostName(url) ?? (clean(feed.title, 60) || new URL(url).hostname);
     const items: NewsItem[] = [];
     for (const e of (feed.items ?? []).slice(0, 20)) {
       const ts = e.isoDate ? Date.parse(e.isoDate) : e.pubDate ? Date.parse(e.pubDate) : NaN;
@@ -203,5 +228,5 @@ export async function getCategoryNews(cat: Category): Promise<NewsItem[]> {
     if (it.source !== g.rep.source && !rel.some((r) => r.source === it.source)) rel.push({ source: it.source, link: it.link });
   }
   const now = Date.now();
-  return groups.map((g) => ({ ...g.rep, score: scoreItem(g.rep, now) })).slice(0, 60);
+  return groups.map((g) => ({ ...g.rep, score: scoreItem(g.rep, now) })).slice(0, 80);
 }
