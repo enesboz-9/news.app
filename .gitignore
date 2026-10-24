@@ -1,5 +1,9 @@
+node_modules/
+.next/
 .env
+.env.local
+.vercel/
+next-env.d.ts
+*.tsbuildinfo
 __pycache__/
-.pytest_cache/
-.streamlit/config.toml
 *.pyc
