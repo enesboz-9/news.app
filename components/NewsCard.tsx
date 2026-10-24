@@ -6,9 +6,12 @@ import { SENTIMENT_LABEL } from "@/lib/sentiment";
 import { formatIst } from "@/lib/format";
 import { isFavorite, toggleFavorite } from "@/lib/favorites";
 
-type Props = { item: NewsItem; categoryName: string; categoryEmoji: string; aiEnabled: boolean; showSentiment?: boolean };
+type Props = {
+  item: NewsItem; categoryName: string; categoryEmoji: string; aiEnabled: boolean; showSentiment?: boolean;
+  variant?: "featured" | "compact"; onHideSource?: (source: string) => void;
+};
 
-export default function NewsCard({ item, categoryName, categoryEmoji, aiEnabled, showSentiment = false }: Props) {
+export default function NewsCard({ item, categoryName, categoryEmoji, aiEnabled, showSentiment = false, variant, onHideSource }: Props) {
   const [showOrig, setShowOrig] = useState(false);
   const [canShare, setCanShare] = useState(false);
   const [fav, setFav] = useState(false);
@@ -39,15 +42,19 @@ export default function NewsCard({ item, categoryName, categoryEmoji, aiEnabled,
   }
 
   return (
-    <article className="news-card">
+    <article className={`news-card${variant ? ` ${variant}` : ""}`}>
       {item.image && (
         <a className="thumb" href={item.link} target="_blank" rel="noopener noreferrer" tabIndex={-1} aria-hidden="true">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={item.image} alt="" loading="lazy" referrerPolicy="no-referrer" onError={(e) => e.currentTarget.parentElement?.setAttribute("hidden", "")} />
+          <img src={item.image} alt="" loading={variant === "featured" ? "eager" : "lazy"} referrerPolicy="no-referrer" onError={(e) => e.currentTarget.parentElement?.setAttribute("hidden", "")} />
         </a>
       )}
+      <div className="news-body">
       <div className="news-meta">
         <span className="src">{item.source}</span>
+        {onHideSource && (
+          <button className="hide-src" onClick={() => onHideSource(item.source)} title={`${item.source} kaynağını gizle`} aria-label={`${item.source} kaynağını gizle`}>×</button>
+        )}
         <time dateTime={item.published}>{formatIst(item.published)}</time>
         {showSentiment && <span className={`badge s-${item.sentiment === "nötr" ? "notr" : item.sentiment}`}>{SENTIMENT_LABEL[item.sentiment]}</span>}
         <span className="badge lang">{item.titleOriginal ? "İngilizceden çevrildi" : item.lang === "tr" ? "Türkçe" : "İngilizce"}</span>
@@ -94,6 +101,7 @@ export default function NewsCard({ item, categoryName, categoryEmoji, aiEnabled,
         </div>
       )}
       {error && <p className="err" role="alert">{error}</p>}
+      </div>
     </article>
   );
 }

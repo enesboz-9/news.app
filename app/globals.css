@@ -45,7 +45,10 @@ h1, h2, h3, .logo { font-family: var(--font-serif), Georgia, "Times New Roman", 
 .top-nav { display: flex; gap: 4px; font-size: 0.9rem; font-weight: 500; }
 .top-nav a { color: var(--muted); padding: 6px 12px; border-radius: 999px; }
 .top-nav a:hover { color: var(--ink); background: var(--accent-soft); text-decoration: none; }
-.cat-nav { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 12px; scrollbar-width: none; mask-image: linear-gradient(90deg, #000 94%, transparent); }
+.cat-nav { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 12px; scrollbar-width: none; }
+.cat-nav.fade-r { mask-image: linear-gradient(90deg, #000 90%, transparent); }
+.cat-nav.fade-l { mask-image: linear-gradient(90deg, transparent, #000 10%); }
+.cat-nav.fade-l.fade-r { mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
 .cat-nav::-webkit-scrollbar { display: none; }
 .cat-nav a { white-space: nowrap; font-size: 0.82rem; font-weight: 500; color: var(--muted); background: var(--surface); border: 1px solid var(--line); padding: 5px 13px; border-radius: 999px; }
 .cat-nav a:hover { color: var(--ink); border-color: var(--accent); text-decoration: none; }
@@ -155,3 +158,30 @@ h1, h2, h3, .logo { font-family: var(--font-serif), Georgia, "Times New Roman", 
 /* Tema düğmesi */
 .theme-btn { font: inherit; font-size: 0.82rem; font-weight: 500; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; margin-left: 6px; cursor: pointer; }
 .theme-btn:hover { color: var(--ink); border-color: var(--accent); }
+
+/* Sayfa yapısı: öne çıkan haber, sıkı kartlar, filtreler */
+.digest { min-height: 120px; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.src-filter { position: relative; }
+.src-filter summary { cursor: pointer; list-style: none; font-size: 0.82rem; font-weight: 600; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; color: var(--ink); background: var(--surface); }
+.src-filter summary::-webkit-details-marker { display: none; }
+.src-panel { position: absolute; z-index: 5; top: calc(100% + 6px); left: 0; width: min(320px, 86vw); max-height: 320px; overflow: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px; display: grid; gap: 2px; box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.35); }
+.src-panel label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; padding: 5px 6px; border-radius: 8px; cursor: pointer; }
+.src-panel label:hover { background: var(--accent-soft); }
+.src-panel small { margin-left: auto; color: var(--dim); }
+.hide-src { font: inherit; font-size: 0.9rem; line-height: 1; border: 0; background: transparent; color: var(--dim); cursor: pointer; padding: 0 4px; border-radius: 6px; }
+.hide-src:hover { color: var(--neg); background: var(--neg-soft); }
+.news-card .news-body { min-width: 0; }
+.news-card.featured { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 0 28px; align-items: center; }
+.news-card.featured .thumb { margin: calc(var(--pad) * -1) 0 calc(var(--pad) * -1) calc(var(--pad) * -1); aspect-ratio: 16 / 10; height: calc(100% + var(--pad) * 2); border-radius: var(--radius) 0 0 var(--radius); }
+.news-card.featured .news-title { font-size: 1.7rem; line-height: 1.2; }
+.news-card.featured .news-summary { -webkit-line-clamp: 3; font-size: 1rem; }
+.news-card.featured:not(:has(.thumb)) { grid-template-columns: 1fr; }
+.news-card.compact { --pad: 14px; }
+.news-card.compact .thumb, .news-card.compact .news-summary { display: none; }
+.news-card.compact .news-title { font-size: 1.02rem; margin-bottom: 10px; }
+@media (max-width: 760px) {
+  .news-card.featured { display: block; }
+  .news-card.featured .thumb { margin: calc(var(--pad) * -1) calc(var(--pad) * -1) 14px; height: auto; aspect-ratio: 16 / 9; border-radius: var(--radius) var(--radius) 0 0; }
+  .news-card.featured .news-title { font-size: 1.35rem; }
+}

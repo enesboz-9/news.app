@@ -45,6 +45,11 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
     if (labels) items = items.map((i, n) => ({ ...i, sentiment: labels[n] }));
   }
   const aiEnabled = Boolean(process.env.GROQ_API_KEY);
+  // Yapay zekâ özeti yoksa en çok kaynağın verdiği 3 haberin başlığı gösterilir; kutu hiç kaybolmaz.
+  const fallbackDigest = [...items]
+    .sort((a, b) => (b.related?.length ?? 0) - (a.related?.length ?? 0))
+    .slice(0, 3)
+    .map((i) => i.title);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -74,11 +79,15 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
         <p>{cat.description} Son güncelleme: {formatIstLong()} (İstanbul saati).</p>
       </section>
 
-      {digest && (
+      {(digest || fallbackDigest.length > 0) && (
         <section className="digest" aria-labelledby="ozet">
-          <h2 id="ozet">Günün özeti</h2>
-          <ul>{digest.map((d, i) => <li key={i}>{d}</li>)}</ul>
-          <p className="muted small">Bu özet yapay zekâ ile haber başlıklarından üretilmiştir ve hata içerebilir.</p>
+          <h2 id="ozet">{digest ? "Günün özeti" : "Öne çıkan başlıklar"}</h2>
+          <ul>{(digest ?? fallbackDigest).map((d, i) => <li key={i}>{d}</li>)}</ul>
+          <p className="muted small">
+            {digest
+              ? "Bu özet yapay zekâ ile haber başlıklarından üretilmiştir ve hata içerebilir."
+              : "Yapay zekâ özeti şu an hazır değil; en çok kaynağın verdiği haberler gösteriliyor."}
+          </p>
         </section>
       )}
 
