@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CATEGORIES, HOME_SLUGS, getCategory } from "@/lib/categories";
 import { getCategoryNews } from "@/lib/news";
+import { translateItems } from "@/lib/groq";
 import { formatIst } from "@/lib/format";
 import { SITE_NAME, SITE_TAGLINE, siteUrl } from "@/lib/site";
 
@@ -8,7 +9,7 @@ export const revalidate = 1800;
 
 export default async function Home() {
   const cats = HOME_SLUGS.map((s) => getCategory(s)!).filter(Boolean);
-  const blocks = await Promise.all(cats.map(async (c) => ({ c, items: (await getCategoryNews(c)).slice(0, 5) })));
+  const blocks = await Promise.all(cats.map(async (c) => ({ c, items: await translateItems((await getCategoryNews(c)).slice(0, 5), 5) })));
 
   const jsonLd = {
     "@context": "https://schema.org",

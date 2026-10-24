@@ -6,9 +6,10 @@ import { SENTIMENT_LABEL } from "@/lib/sentiment";
 import { formatIst } from "@/lib/format";
 import { isFavorite, toggleFavorite } from "@/lib/favorites";
 
-type Props = { item: NewsItem; categoryName: string; categoryEmoji: string; aiEnabled: boolean };
+type Props = { item: NewsItem; categoryName: string; categoryEmoji: string; aiEnabled: boolean; showSentiment?: boolean };
 
-export default function NewsCard({ item, categoryName, categoryEmoji, aiEnabled }: Props) {
+export default function NewsCard({ item, categoryName, categoryEmoji, aiEnabled, showSentiment = false }: Props) {
+  const [showOrig, setShowOrig] = useState(false);
   const [fav, setFav] = useState(false);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -23,7 +24,7 @@ export default function NewsCard({ item, categoryName, categoryEmoji, aiEnabled 
       const res = await fetch("/api/analiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: item.title, summary: item.summary, foreign: item.lang !== "tr" }),
+        body: JSON.stringify({ title: item.titleOriginal ?? item.title, summary: item.summaryOriginal ?? item.summary, foreign: item.lang !== "tr" }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Analiz yapılamadı");
@@ -40,11 +41,11 @@ export default function NewsCard({ item, categoryName, categoryEmoji, aiEnabled 
       <div className="news-meta">
         <span className="src">{item.source}</span>
         <time dateTime={item.published}>{formatIst(item.published)}</time>
-        <span className={`badge s-${item.sentiment === "nötr" ? "notr" : item.sentiment}`}>{SENTIMENT_LABEL[item.sentiment]}</span>
-        <span className="badge lang">{item.lang === "tr" ? "Türkçe" : "İngilizce"}</span>
+        {showSentiment && <span className={`badge s-${item.sentiment === "nötr" ? "notr" : item.sentiment}`}>{SENTIMENT_LABEL[item.sentiment]}</span>}
+        <span className="badge lang">{item.titleOriginal ? "İngilizceden çevrildi" : item.lang === "tr" ? "Türkçe" : "İngilizce"}</span>
       </div>
-      <h3 className="news-title">{item.title}</h3>
-      {item.summary && <p className="news-summary">{item.summary}</p>}
+      <h3 className="news-title">{showOrig && item.titleOriginal ? item.titleOriginal : item.title}</h3>
+      {(showOrig ? item.summaryOriginal : item.summary) && <p className="news-summary">{showOrig ? item.summaryOriginal : item.summary}</p>}
       <div className="news-actions">
         <a className="btn primary" href={item.link} target="_blank" rel="noopener noreferrer">Habere git</a>
         <button
@@ -54,6 +55,9 @@ export default function NewsCard({ item, categoryName, categoryEmoji, aiEnabled 
         >
           {fav ? "Favoriden çıkar" : "Favorilere ekle"}
         </button>
+        {item.titleOriginal && (
+          <button className="btn" onClick={() => setShowOrig(!showOrig)}>{showOrig ? "Çeviriyi göster" : "Orijinalini göster"}</button>
+        )}
         {aiEnabled && (
           <button className="btn" onClick={analyze} disabled={busy}>
             {busy ? "Analiz ediliyor…" : "AI analizi"}

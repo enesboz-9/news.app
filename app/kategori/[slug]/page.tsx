@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CATEGORIES, getCategory } from "@/lib/categories";
 import { getCategoryNews } from "@/lib/news";
-import { dailyDigest } from "@/lib/groq";
+import { dailyDigest, marketImpact, translateItems } from "@/lib/groq";
 import { formatIstLong } from "@/lib/format";
 import { SITE_NAME, siteUrl } from "@/lib/site";
-import NewsCard from "@/components/NewsCard";
+import NewsList from "@/components/NewsList";
 
 export const revalidate = 1800;
 export const dynamicParams = false;
@@ -32,8 +32,19 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   const cat = getCategory(slug);
   if (!cat) notFound();
 
-  const items = await getCategoryNews(cat);
-  const digest = await dailyDigest(items.map((i) => i.title), cat.name);
+  let items = await getCategoryNews(cat);
+  const [translated, digest] = await Promise.all([translateItems(items, 20), dailyDigest(items.map((i) => i.title), cat.name)]);
+  items = translated;
+  // Ekonomi kategorilerinde etiket, haberin piyasalara ve emtialara olası etkisine göre yapay zekâ ile verilir.
+  let showSentiment = false;
+  if (cat.market) {
+    items = items.slice(0, 30);
+    const labels = await marketImpact(items.map((i) => i.title));
+    if (labels) {
+      items = items.map((i, n) => ({ ...i, sentiment: labels[n] }));
+      showSentiment = true;
+    }
+  }
   const aiEnabled = Boolean(process.env.GROQ_API_KEY);
 
   const jsonLd = {
@@ -73,12 +84,10 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
       )}
 
       {items.length === 0 ? (
-        <p className="empty">Son 24 saatte bu kategoride haber bulunamadı.</p>
+        <p className="empty">Şu an bu kategoride haber bulunamadı. Birazdan tekrar deneyin.</p>
       ) : (
-        <section className="news-list" aria-label="Haber listesi">
-          {items.map((item) => (
-            <NewsCard key={item.link} item={item} categoryName={cat.name} categoryEmoji={cat.emoji} aiEnabled={aiEnabled} />
-          ))}
+        <section aria-label="Haber listesi">
+          <NewsList items={items} categoryName={cat.name} categoryEmoji={cat.emoji} aiEnabled={aiEnabled} showSentiment={showSentiment} />
         </section>
       )}
     </>

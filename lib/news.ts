@@ -11,6 +11,8 @@ export type NewsItem = {
   published: string; // ISO
   sentiment: Sentiment;
   lang: "tr" | "en";
+  titleOriginal?: string; // çevrilmişse özgün başlık
+  summaryOriginal?: string;
 };
 
 const REVALIDATE_SECONDS = 1800; // 30 dk
@@ -49,13 +51,20 @@ async function fetchFeed(url: string, cutoff: number): Promise<NewsItem[]> {
       if (!Number.isFinite(ts) || ts < cutoff) continue;
       const link = e.link ?? "";
       if (!isHttp(link)) continue; // yalnızca http/https bağlantılar
-      const title = clean(e.title, 300) || "Başlık yok";
-      const summary = clean(e.contentSnippet || e.content || e.summary);
+      let title = clean(e.title, 300) || "Başlık yok";
+      let src = source;
+      const google = url.includes("news.google.com");
+      // Google Haberler başlıkları "Başlık - Yayıncı" biçimindedir
+      if (google) {
+        const k = title.lastIndexOf(" - ");
+        if (k > 0) { src = title.slice(k + 3).trim() || source; title = title.slice(0, k).trim(); }
+      }
+      const summary = google ? "" : clean(e.contentSnippet || e.content || e.summary);
       items.push({
         title,
         link,
         summary,
-        source,
+        source: src,
         published: new Date(ts).toISOString(),
         sentiment: quickSentiment(title),
         lang: detectLang(`${title} ${summary}`),
@@ -68,7 +77,7 @@ async function fetchFeed(url: string, cutoff: number): Promise<NewsItem[]> {
 }
 
 export async function getCategoryNews(cat: Category): Promise<NewsItem[]> {
-  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+  const cutoff = Date.now() - (cat.windowHours ?? 24) * 60 * 60 * 1000;
   const lists = await Promise.all(cat.feeds.map((u) => fetchFeed(u, cutoff)));
   const seen = new Set<string>();
   const merged: NewsItem[] = [];

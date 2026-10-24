@@ -23,7 +23,7 @@ export function quickSentiment(title: string): Sentiment {
 }
 
 export const SENTIMENT_LABEL: Record<Sentiment, string> = {
-  pozitif: "Olumlu",
-  negatif: "Olumsuz",
-  nötr: "Nötr",
+  pozitif: "Piyasa: olumlu",
+  negatif: "Piyasa: olumsuz",
+  nötr: "Piyasa: nötr",
 };

@@ -2,6 +2,8 @@ export type Category = {
   slug: string;
   name: string;
   emoji: string;
+  market?: boolean; // piyasa etkisi etiketi gösterilir
+  windowHours?: number; // haber penceresi (varsayılan 24 saat)
   description: string;
   feeds: string[];
 };
@@ -25,6 +27,7 @@ export const CATEGORIES: Category[] = [
   },
   {
     slug: "borsa-istanbul", name: "Borsa İstanbul", emoji: "📈",
+    market: true,
     description: "Borsa İstanbul, piyasalar ve ekonomi haberleri ile yapay zekâ destekli günlük özet.",
     feeds: [
       "https://feeds.bbci.co.uk/turkce/ekonomi/rss.xml",
@@ -45,6 +48,7 @@ export const CATEGORIES: Category[] = [
   },
   {
     slug: "global-ekonomi", name: "Global Ekonomi", emoji: "🌍",
+    market: true,
     description: "Küresel ekonomi ve iş dünyasından son haberler, günlük yapay zekâ özetiyle.",
     feeds: [
       "https://feeds.bbci.co.uk/news/business/rss.xml",
@@ -53,6 +57,7 @@ export const CATEGORIES: Category[] = [
   },
   {
     slug: "ekonomi-finans", name: "Ekonomi & Finans", emoji: "💰",
+    market: true,
     description: "Türkiye ekonomisi, finans ve iş dünyası haberleri ile günlük özet.",
     feeds: [
       "https://www.bloomberght.com/rss",
@@ -101,15 +106,6 @@ export const CATEGORIES: Category[] = [
       "https://chip.com.tr/feed/",
       "https://www.ntv.com.tr/teknoloji.rss",
       "https://shiftdelete.net/feed",
-    ],
-  },
-  {
-    slug: "elektrik-elektronik", name: "Elektrik-Elektronik", emoji: "⚡",
-    description: "Elektrik, elektronik ve yarı iletken dünyasından güncel haberler.",
-    feeds: [
-      "https://spectrum.ieee.org/rss/fulltext",
-      "https://www.eetimes.com/rss/",
-      "https://chip.com.tr/feed/",
     ],
   },
   {
@@ -166,8 +162,10 @@ export const CATEGORIES: Category[] = [
   },
   {
     slug: "otomotiv", name: "Otomotiv", emoji: "🚗",
+    windowHours: 72,
     description: "Otomotiv dünyasından yeni modeller ve sektör haberleri.",
     feeds: [
+      "https://news.google.com/rss/search?q=otomobil+when:3d&hl=tr&gl=TR&ceid=TR:tr",
       "https://www.otomobiltutkusu.com/feed/",
       "https://www.autocarblog.com/feed/",
       "https://www.motortrend.com/rss/all/",
@@ -193,8 +191,10 @@ export const CATEGORIES: Category[] = [
   },
   {
     slug: "kultur-sanat", name: "Kültür & Sanat", emoji: "🎬",
+    windowHours: 72,
     description: "Kültür, sanat ve müzik dünyasından güncel haberler.",
     feeds: [
+      "https://news.google.com/rss/search?q=k%C3%BClt%C3%BCr+sanat+when:3d&hl=tr&gl=TR&ceid=TR:tr",
       "https://www.hurriyet.com.tr/rss/kultur-sanat",
       "https://www.milliyet.com.tr/rss/rssNew/sanatRss.xml",
       "https://pitchfork.com/rss/news/feed.xml",

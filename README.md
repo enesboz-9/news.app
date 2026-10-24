@@ -3,7 +3,7 @@
 Streamlit sürümünün Next.js ile yeniden yazılmış hâli. Veri tabanı ve hesap yok; Vercel'de çalışır.
 
 ## Özellikler
-- 20 kategori, her birinin kendi adresi: `/kategori/spor`, `/kategori/yapay-zeka` ...
+- 19 kategori, her birinin kendi adresi: `/kategori/spor`, `/kategori/yapay-zeka` ...
 - Sunucuda üretilen sayfalar (Google içeriği tam görür), 30 dakikada bir yenilenir
 - Her kategori için Groq (varsayılan: openai/gpt-oss-120b, `GROQ_MODEL` ile değiştirilebilir) ile **Günün Özeti**
 - Haber başına isteğe bağlı **AI Analiz** (`/api/analiz`)
