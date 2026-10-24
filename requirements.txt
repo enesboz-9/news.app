@@ -1,6 +1,0 @@
-streamlit
-feedparser
-groq
-pytz
-gtts
-langdetect
