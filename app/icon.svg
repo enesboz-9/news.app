@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="haberAI logosu">
+  <rect width="512" height="512" rx="116" fill="#0B1220"/>
+  <!-- manşet -->
+  <rect x="116" y="150" width="200" height="40" rx="12" fill="#FFFFFF"/>
+  <!-- görsel alanı -->
+  <rect x="116" y="226" width="112" height="112" rx="16" fill="#2F7BFF"/>
+  <!-- metin satırları -->
+  <rect x="252" y="230" width="144" height="18" rx="9" fill="#FFFFFF" fill-opacity="0.9"/>
+  <rect x="252" y="266" width="144" height="18" rx="9" fill="#FFFFFF" fill-opacity="0.55"/>
+  <rect x="252" y="302" width="96" height="18" rx="9" fill="#FFFFFF" fill-opacity="0.3"/>
+  <rect x="116" y="362" width="280" height="18" rx="9" fill="#FFFFFF" fill-opacity="0.3"/>
+  <!-- yapay zekâ kıvılcımı -->
+  <path d="M376 96 C379 125 387 133 416 136 C387 139 379 147 376 176 C373 147 365 139 336 136 C365 133 373 125 376 96 Z" fill="#2F7BFF"/>
+</svg>

@@ -6,7 +6,7 @@ export default function Header() {
   return (
     <header className="site-header">
       <div className="wrap head-row">
-        <Link href="/" className="logo">⚡ {SITE_NAME}</Link>
+        <Link href="/" className="logo">{SITE_NAME}</Link>
         <nav aria-label="Ana menü" className="top-nav">
           <Link href="/">Ana sayfa</Link>
           <Link href="/favoriler">⭐ Favoriler</Link>
