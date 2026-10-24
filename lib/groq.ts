@@ -1,5 +1,7 @@
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-const MODEL = "llama-3.3-70b-versatile";
+// Model adı Vercel'de GROQ_MODEL ile değiştirilebilir; Groq model kapatırsa kod değiştirmek gerekmez.
+const MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
+const REASONING = MODEL.startsWith("openai/gpt-oss");
 
 async function chat(prompt: string, temperature: number, maxTokens: number): Promise<string | null> {
   const key = process.env.GROQ_API_KEY;
@@ -12,11 +14,16 @@ async function chat(prompt: string, temperature: number, maxTokens: number): Pro
         model: MODEL,
         messages: [{ role: "user", content: prompt }],
         temperature,
-        max_tokens: maxTokens,
+        // gpt-oss düşünme jetonları da bu sınıra dahildir; kısa yanıtın kesilmemesi için pay bırakılır.
+        max_tokens: REASONING ? maxTokens + 800 : maxTokens,
+        ...(REASONING ? { reasoning_effort: "low" } : {}),
       }),
       signal: AbortSignal.timeout(20000),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.error("Groq hatası", res.status, (await res.text()).slice(0, 300));
+      return null;
+    }
     const data = await res.json();
     const text: string | undefined = data?.choices?.[0]?.message?.content;
     return text?.trim() || null;

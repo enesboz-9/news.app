@@ -24,7 +24,7 @@ export default function About() {
       </p>
       <h2>Yapay zekâ özetleri</h2>
       <p>
-        Günlük özetler ve isteğe bağlı analizler Groq üzerinde çalışan Llama 3.3 modeli ile üretilir. Yapay zekâ hata
+        Günlük özetler ve isteğe bağlı analizler Groq üzerinde çalışan açık kaynaklı bir dil modeli ile üretilir. Yapay zekâ hata
         yapabilir; önemli konularda haberin kaynağını kontrol edin. Sağlık ve finans içerikleri tavsiye niteliği taşımaz.
       </p>
       <h2>Gizlilik</h2>
