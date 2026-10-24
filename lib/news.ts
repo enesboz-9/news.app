@@ -97,6 +97,7 @@ export async function getCategoryNews(cat: Category): Promise<NewsItem[]> {
   const merged: NewsItem[] = [];
   for (const it of lists.flat()) {
     if (seen.has(it.link)) continue;
+    if (cat.exclude?.test(it.title)) continue;
     seen.add(it.link);
     merged.push(it);
   }

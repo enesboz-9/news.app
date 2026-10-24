@@ -6,6 +6,7 @@ export type Category = {
   windowHours?: number; // haber penceresi (varsayılan 24 saat)
   description: string;
   feeds: string[];
+  exclude?: RegExp; // başlıkta eşleşirse haber elenir
 };
 
 // Not: Kapanmış olduğu bilinen Reuters RSS adresleri çıkarıldı.
@@ -163,9 +164,10 @@ export const CATEGORIES: Category[] = [
   {
     slug: "otomotiv", name: "Otomotiv", emoji: "🚗",
     windowHours: 72,
+    exclude: /\bkaza(sı|da|ya|yı|lar|ları)?\b|yaralı|ölü|ölüm|hayatını kaybet|devril|çarpış|cinayet|tutuklan|gözaltı|hırsız|yangın|killed|dies\b|arrested/i,
     description: "Otomotiv dünyasından yeni modeller ve sektör haberleri.",
     feeds: [
-      "https://news.google.com/rss/search?q=otomobil+when:3d&hl=tr&gl=TR&ceid=TR:tr",
+      "https://news.google.com/rss/search?q=(otomotiv+OR+%22yeni+model%22+OR+%22elektrikli+ara%C3%A7%22+OR+%22otomobil+sat%C4%B1%C5%9Flar%C4%B1%22+OR+%22ara%C3%A7+lansman%C4%B1%22)+-kaza+-yaral%C4%B1+-%C3%B6l%C3%BC+-devrildi+-%C3%A7arp%C4%B1%C5%9Ft%C4%B1+when:3d&hl=tr&gl=TR&ceid=TR:tr",
       "https://www.otomobiltutkusu.com/feed/",
       "https://www.autocarblog.com/feed/",
       "https://www.motortrend.com/rss/all/",

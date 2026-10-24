@@ -36,14 +36,13 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   const [translated, digest] = await Promise.all([translateItems(items, 20), dailyDigest(items.map((i) => i.title), cat.name)]);
   items = translated;
   // Ekonomi kategorilerinde etiket, haberin piyasalara ve emtialara olası etkisine göre yapay zekâ ile verilir.
+  // Yapay zekâ yanıt vermezse (hız sınırı, build vb.) anahtar kelimeye dayalı etiketler (quickSentiment) gösterilir.
   let showSentiment = false;
   if (cat.market) {
     items = items.slice(0, 30);
+    showSentiment = true;
     const labels = await marketImpact(items.map((i) => i.title));
-    if (labels) {
-      items = items.map((i, n) => ({ ...i, sentiment: labels[n] }));
-      showSentiment = true;
-    }
+    if (labels) items = items.map((i, n) => ({ ...i, sentiment: labels[n] }));
   }
   const aiEnabled = Boolean(process.env.GROQ_API_KEY);
 

@@ -19,40 +19,66 @@ function parseArray(out: string | null): unknown[] | null {
   }
 }
 
+// Build sırasında (21 kategori sayfası aynı anda üretilirken) Groq çağrılmaz; sayfalar özetsiz üretilir,
+// ilk yenilemede (ISR) yapay zekâ içeriği dolar. Böylece hız sınırına takılınmaz ve build zaman aşımına uğramaz.
+const IS_BUILD = process.env.NEXT_PHASE === "phase-production-build";
+
+// Aynı anda en fazla MAX_CONCURRENT Groq isteği çalışır; kalanlar sırada bekler.
+const MAX_CONCURRENT = 2;
+let active = 0;
+const waiting: (() => void)[] = [];
+async function withSlot<T>(fn: () => Promise<T>): Promise<T> {
+  if (active >= MAX_CONCURRENT) await new Promise<void>((r) => waiting.push(r));
+  active++;
+  try {
+    return await fn();
+  } finally {
+    active--;
+    waiting.shift()?.();
+  }
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 async function chat(prompt: string, temperature: number, maxTokens: number): Promise<string | null> {
   const key = process.env.GROQ_API_KEY;
-  if (!key) return null;
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      const res = await fetch(GROQ_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-        body: JSON.stringify({
-          model: MODEL,
-          messages: [{ role: "user", content: prompt }],
-          temperature,
-          // gpt-oss düşünme jetonları da bu sınıra dahildir; kısa yanıtın kesilmemesi için pay bırakılır.
-          max_tokens: REASONING ? maxTokens + 800 : maxTokens,
-          ...(REASONING ? { reasoning_effort: "low" } : {}),
-        }),
-        signal: AbortSignal.timeout(25000),
-      });
-      if (res.status === 429 && attempt === 0) {
-        await new Promise((r) => setTimeout(r, 2000)); // hız sınırı: bir kez bekleyip yeniden dene
-        continue;
-      }
-      if (!res.ok) {
-        console.error("Groq hatası", res.status, (await res.text()).slice(0, 300));
+  if (!key || IS_BUILD) return null;
+  return withSlot(async () => {
+    for (let attempt = 0; attempt < 4; attempt++) {
+      try {
+        const res = await fetch(GROQ_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+          body: JSON.stringify({
+            model: MODEL,
+            messages: [{ role: "user", content: prompt }],
+            temperature,
+            // gpt-oss düşünme jetonları da bu sınıra dahildir; kısa yanıtın kesilmemesi için pay bırakılır.
+            max_tokens: REASONING ? maxTokens + 800 : maxTokens,
+            ...(REASONING ? { reasoning_effort: "low" } : {}),
+          }),
+          signal: AbortSignal.timeout(25000),
+        });
+        if (res.status === 429 && attempt < 3) {
+          // Hız sınırı: Groq'un önerdiği süre kadar (en fazla 10 sn) bekleyip yeniden dene.
+          const ra = Number(res.headers.get("retry-after"));
+          const wait = Math.min(10000, (Number.isFinite(ra) && ra > 0 ? ra * 1000 : 2000 * (attempt + 1)) + 300);
+          await sleep(wait);
+          continue;
+        }
+        if (!res.ok) {
+          console.error("Groq hatası", res.status, (await res.text()).slice(0, 300));
+          return null;
+        }
+        const data = await res.json();
+        const text: string | undefined = data?.choices?.[0]?.message?.content;
+        return text?.trim() || null;
+      } catch {
         return null;
       }
-      const data = await res.json();
-      const text: string | undefined = data?.choices?.[0]?.message?.content;
-      return text?.trim() || null;
-    } catch {
-      return null;
     }
-  }
-  return null;
+    return null;
+  });
 }
 
 // Türkçe olmayan haberlerin başlık ve özetini toplu çevirir (en çok `max` haber). Hata olursa özgün metin kalır.
