@@ -41,6 +41,10 @@ export default async function Home() {
           ) : (
             <>
               <a className="lead" href={items[0].link} target="_blank" rel="noopener noreferrer">
+                {items[0].image && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img className="lead-img" src={items[0].image} alt="" loading="lazy" referrerPolicy="no-referrer" />
+                )}
                 <span className="lead-title">{items[0].title}</span>
                 <span className="lead-meta">{items[0].source} · {formatIst(items[0].published)}</span>
               </a>

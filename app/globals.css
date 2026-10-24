@@ -7,13 +7,21 @@
   color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #0a0d12; --surface: #12171f; --ink: #eaeef3; --muted: #9aa5b3; --dim: #6c7787; --line: #222a35;
     --accent: #8aa3ff; --accent-ink: #0a0d12; --accent-soft: #1a2340;
     --pos: #4ed1a1; --pos-soft: #11291f; --neg: #ff7a90; --neg-soft: #2f141b; --gold: #e9b34f;
     --shadow: none;
   }
 }
+:root[data-theme="dark"] {
+  --bg: #0a0d12; --surface: #12171f; --ink: #eaeef3; --muted: #9aa5b3; --dim: #6c7787; --line: #222a35;
+  --accent: #8aa3ff; --accent-ink: #0a0d12; --accent-soft: #1a2340;
+  --pos: #4ed1a1; --pos-soft: #11291f; --neg: #ff7a90; --neg-soft: #2f141b; --gold: #e9b34f;
+  --shadow: none;
+  color-scheme: dark;
+}
+:root[data-theme="light"] { color-scheme: light; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body {
@@ -132,3 +140,15 @@ h1, h2, h3, .logo { font-family: var(--font-serif), Georgia, "Times New Roman", 
 .seg-btn { font: inherit; font-size: 0.82rem; font-weight: 600; color: var(--muted); background: transparent; border: 0; border-radius: 999px; padding: 5px 13px; cursor: pointer; }
 .seg-btn.on { background: var(--ink); color: var(--bg); }
 .more { text-align: center; margin-top: 22px; }
+
+/* Görseller */
+.news-card { --pad: 20px; padding: var(--pad); }
+.thumb { display: block; aspect-ratio: 16 / 9; margin: calc(var(--pad) * -1) calc(var(--pad) * -1) 14px; overflow: hidden; border-radius: var(--radius) var(--radius) 0 0; background: var(--accent-soft); }
+.thumb[hidden] { display: none; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lead-img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 12px; margin-bottom: 12px; background: var(--accent-soft); }
+@media (max-width: 600px) { .news-card { --pad: 16px; } }
+
+/* Tema düğmesi */
+.theme-btn { font: inherit; font-size: 0.82rem; font-weight: 500; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; margin-left: 6px; cursor: pointer; }
+.theme-btn:hover { color: var(--ink); border-color: var(--accent); }

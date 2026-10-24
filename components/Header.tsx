@@ -1,5 +1,6 @@
 import Link from "next/link";
 import CatNav from "./CatNav";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Header() {
   return (
@@ -10,6 +11,7 @@ export default function Header() {
           <Link href="/">Ana sayfa</Link>
           <Link href="/favoriler">Favoriler</Link>
           <Link href="/hakkinda">Hakkında</Link>
+          <ThemeToggle />
         </nav>
       </div>
       <CatNav />

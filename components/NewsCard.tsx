@@ -10,12 +10,14 @@ type Props = { item: NewsItem; categoryName: string; categoryEmoji: string; aiEn
 
 export default function NewsCard({ item, categoryName, categoryEmoji, aiEnabled, showSentiment = false }: Props) {
   const [showOrig, setShowOrig] = useState(false);
+  const [canShare, setCanShare] = useState(false);
   const [fav, setFav] = useState(false);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => setFav(isFavorite(item.link)), [item.link]);
+  useEffect(() => setCanShare(typeof navigator !== "undefined" && !!navigator.share), []);
 
   async function analyze() {
     setBusy(true);
@@ -38,6 +40,12 @@ export default function NewsCard({ item, categoryName, categoryEmoji, aiEnabled,
 
   return (
     <article className="news-card">
+      {item.image && (
+        <a className="thumb" href={item.link} target="_blank" rel="noopener noreferrer" tabIndex={-1} aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={item.image} alt="" loading="lazy" referrerPolicy="no-referrer" onError={(e) => e.currentTarget.parentElement?.setAttribute("hidden", "")} />
+        </a>
+      )}
       <div className="news-meta">
         <span className="src">{item.source}</span>
         <time dateTime={item.published}>{formatIst(item.published)}</time>
@@ -55,6 +63,9 @@ export default function NewsCard({ item, categoryName, categoryEmoji, aiEnabled,
         >
           {fav ? "Favoriden çıkar" : "Favorilere ekle"}
         </button>
+        {canShare && (
+          <button className="btn" onClick={() => navigator.share({ title: item.title, url: item.link }).catch(() => {})}>Paylaş</button>
+        )}
         {item.titleOriginal && (
           <button className="btn" onClick={() => setShowOrig(!showOrig)}>{showOrig ? "Çeviriyi göster" : "Orijinalini göster"}</button>
         )}

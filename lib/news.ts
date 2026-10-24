@@ -13,10 +13,13 @@ export type NewsItem = {
   lang: "tr" | "en";
   titleOriginal?: string; // çevrilmişse özgün başlık
   summaryOriginal?: string;
+  image?: string; // haber görseli (https)
 };
 
 const REVALIDATE_SECONDS = 1800; // 30 dk
-const parser = new Parser();
+const parser = new Parser({
+  customFields: { item: [["media:content", "mediaContent"], ["media:thumbnail", "mediaThumb"]] },
+});
 
 function clean(text: string | undefined, max = 300): string {
   if (!text) return "";
@@ -33,6 +36,16 @@ function clean(text: string | undefined, max = 300): string {
 
 function isHttp(url: string): boolean {
   return /^https?:\/\//i.test(url);
+}
+
+// Besleme öğesinden görsel adresi bulur: enclosure, media:content/thumbnail ya da içerikteki ilk <img>.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function pickImage(e: any): string | undefined {
+  const enc = e.enclosure?.url && (e.enclosure.type?.startsWith("image") || /\.(jpe?g|png|webp)/i.test(e.enclosure.url)) ? e.enclosure.url : undefined;
+  const html: string = e["content:encoded"] ?? e.content ?? "";
+  const cands = [enc, e.mediaContent?.$?.url, e.mediaThumb?.$?.url, /<img[^>]+src=["']([^"']+)["']/i.exec(html)?.[1]];
+  const u = cands.find((x) => typeof x === "string" && isHttp(x));
+  return u?.replace(/^http:\/\//i, "https://");
 }
 
 async function fetchFeed(url: string, cutoff: number): Promise<NewsItem[]> {
@@ -68,6 +81,7 @@ async function fetchFeed(url: string, cutoff: number): Promise<NewsItem[]> {
         published: new Date(ts).toISOString(),
         sentiment: quickSentiment(title),
         lang: detectLang(`${title} ${summary}`),
+        image: pickImage(e),
       });
     }
     return items;
