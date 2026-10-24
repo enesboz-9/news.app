@@ -11,26 +11,30 @@ export default function FavoritesView() {
 
   if (items === null) return <p className="muted">Yükleniyor…</p>;
   if (items.length === 0) {
-    return <p className="empty">[ HENÜZ FAVORİ YOK — HABER KARTLARINDAKİ ☆ FAVORİ DÜĞMESİNİ KULLANIN ]</p>;
+    return <p className="empty">Henüz favori haberiniz yok. Haber kartlarındaki “Favorilere ekle” düğmesiyle buraya ekleyebilirsiniz.</p>;
   }
 
   return (
     <>
       <div className="news-actions" style={{ marginBottom: 16 }}>
-        <button className="btn" onClick={() => { clearFavorites(); setItems([]); }}>🗑️ Favorileri temizle</button>
+        <button className="btn" onClick={() => { clearFavorites(); setItems([]); }}>Favorileri temizle</button>
       </div>
+      <div className="news-list">
       {items.map((f) => (
         <article className="news-card fav" key={f.link}>
           <div className="news-meta">
-            {f.emoji} {f.category} | {f.source} | {formatIst(f.published)} İST
+            <span className="src">{f.source}</span>
+            <span>{f.category}</span>
+            <time dateTime={f.published}>{formatIst(f.published)}</time>
           </div>
           <h3 className="news-title">{f.title}</h3>
           <div className="news-actions">
-            <a className="btn" href={f.link} target="_blank" rel="noopener noreferrer">↗ Habere git</a>
-            <button className="btn" onClick={() => { removeFavorite(f.link); setItems(loadFavorites()); }}>✕ Kaldır</button>
+            <a className="btn primary" href={f.link} target="_blank" rel="noopener noreferrer">Habere git</a>
+            <button className="btn" onClick={() => { removeFavorite(f.link); setItems(loadFavorites()); }}>Favoriden çıkar</button>
           </div>
         </article>
       ))}
+      </div>
     </>
   );
 }

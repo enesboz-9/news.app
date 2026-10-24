@@ -23,7 +23,7 @@ export function quickSentiment(title: string): Sentiment {
 }
 
 export const SENTIMENT_LABEL: Record<Sentiment, string> = {
-  pozitif: "▲ POZİTİF",
-  negatif: "▼ NEGATİF",
-  nötr: "● NÖTR",
+  pozitif: "Olumlu",
+  negatif: "Olumsuz",
+  nötr: "Nötr",
 };

@@ -24,33 +24,41 @@ export default async function Home() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <section className="hero">
-        <h1>⚡ {SITE_NAME}</h1>
-        <p>{SITE_TAGLINE}. Son 24 saatin haberleri, kategori bazlı yapay zekâ özetiyle.</p>
+        <h1>Son 24 saatin haberleri, tek sayfada.</h1>
+        <p>{SITE_NAME}: {SITE_TAGLINE}. Her kategori için yapay zekâ ile hazırlanmış günlük özet.</p>
       </section>
 
+      <div className="home-grid">
       {blocks.map(({ c, items }) => (
         <section key={c.slug} className="home-block">
           <div className="block-head">
-            <h2>{c.emoji} {c.name}</h2>
-            <Link href={`/kategori/${c.slug}`}>Tümü →</Link>
+            <h2>{c.name}</h2>
+            <Link href={`/kategori/${c.slug}`}>Tümünü gör</Link>
           </div>
           {items.length === 0 ? (
-            <p className="muted">Şu an haber alınamadı.</p>
+            <p className="muted">Şu an haber alınamadı. Birazdan tekrar deneyin.</p>
           ) : (
-            <ul className="headline-list">
-              {items.map((i) => (
-                <li key={i.link}>
-                  <a href={i.link} target="_blank" rel="noopener noreferrer">{i.title}</a>
-                  <span className="muted"> — {i.source}, {formatIst(i.published)}</span>
-                </li>
-              ))}
-            </ul>
+            <>
+              <a className="lead" href={items[0].link} target="_blank" rel="noopener noreferrer">
+                <span className="lead-title">{items[0].title}</span>
+                <span className="lead-meta">{items[0].source} · {formatIst(items[0].published)}</span>
+              </a>
+              <ul className="headline-list">
+                {items.slice(1).map((i) => (
+                  <li key={i.link}>
+                    <a href={i.link} target="_blank" rel="noopener noreferrer">{i.title}</a>
+                    <span className="headline-meta">{i.source} · {formatIst(i.published)}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </section>
       ))}
+      </div>
 
-      <section className="home-block">
-        <div className="block-head"><h2>Tüm kategoriler</h2></div>
+      <section>
+        <h2 className="section-title">Tüm kategoriler</h2>
         <div className="chips">
           {CATEGORIES.map((c) => (
             <Link key={c.slug} href={`/kategori/${c.slug}`}>{c.emoji} {c.name}</Link>

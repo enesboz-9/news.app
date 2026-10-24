@@ -58,24 +58,24 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <nav className="crumbs" aria-label="Sayfa yolu"><a href="/">{SITE_NAME}</a> › {cat.name}</nav>
+      <nav className="crumbs" aria-label="Sayfa yolu"><a href="/">{SITE_NAME}</a> / {cat.name}</nav>
       <section className="hero">
-        <h1>{cat.emoji} {cat.name} Haberleri</h1>
-        <p>{cat.description} · Son güncelleme: {formatIstLong()} (İstanbul)</p>
+        <h1>{cat.name} haberleri</h1>
+        <p>{cat.description} Son güncelleme: {formatIstLong()} (İstanbul saati).</p>
       </section>
 
       {digest && (
         <section className="digest" aria-labelledby="ozet">
-          <h2 id="ozet">◈ Günün özeti — {cat.name}</h2>
+          <h2 id="ozet">Günün özeti</h2>
           <ul>{digest.map((d, i) => <li key={i}>{d}</li>)}</ul>
           <p className="muted small">Bu özet yapay zekâ ile haber başlıklarından üretilmiştir ve hata içerebilir.</p>
         </section>
       )}
 
       {items.length === 0 ? (
-        <p className="empty">[ SON 24 SAATTE HABER BULUNAMADI ]</p>
+        <p className="empty">Son 24 saatte bu kategoride haber bulunamadı.</p>
       ) : (
-        <section aria-label="Haber listesi">
+        <section className="news-list" aria-label="Haber listesi">
           {items.map((item) => (
             <NewsCard key={item.link} item={item} categoryName={cat.name} categoryEmoji={cat.emoji} aiEnabled={aiEnabled} />
           ))}

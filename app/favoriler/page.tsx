@@ -10,7 +10,7 @@ export default function FavoritesPage() {
   return (
     <>
       <section className="hero">
-        <h1>⭐ Favorilerim</h1>
+        <h1>Favorilerim</h1>
         <p>Favoriler yalnızca bu tarayıcıda saklanır; hesap gerekmez.</p>
       </section>
       <FavoritesView />

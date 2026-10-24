@@ -3,8 +3,8 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <section className="hero">
-      <h1>404</h1>
-      <p>Aradığınız sayfa bulunamadı. <Link href="/">Ana sayfaya dön</Link></p>
+      <h1>Sayfa bulunamadı</h1>
+      <p>Adres yanlış olabilir ya da sayfa kaldırılmış. <Link href="/">Ana sayfaya dön</Link></p>
     </section>
   );
 }

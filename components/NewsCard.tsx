@@ -38,32 +38,31 @@ export default function NewsCard({ item, categoryName, categoryEmoji, aiEnabled 
   return (
     <article className="news-card">
       <div className="news-meta">
-        <span className="src">{categoryEmoji} {item.source}</span>
-        <span> | </span>
-        <time dateTime={item.published}>{formatIst(item.published)} İST</time>
+        <span className="src">{item.source}</span>
+        <time dateTime={item.published}>{formatIst(item.published)}</time>
         <span className={`badge s-${item.sentiment === "nötr" ? "notr" : item.sentiment}`}>{SENTIMENT_LABEL[item.sentiment]}</span>
-        <span className="badge lang">{item.lang === "tr" ? "🇹🇷 TR" : "🇬🇧 EN"}</span>
+        <span className="badge lang">{item.lang === "tr" ? "Türkçe" : "İngilizce"}</span>
       </div>
       <h3 className="news-title">{item.title}</h3>
       {item.summary && <p className="news-summary">{item.summary}</p>}
       <div className="news-actions">
-        <a className="btn" href={item.link} target="_blank" rel="noopener noreferrer">↗ Habere git</a>
+        <a className="btn primary" href={item.link} target="_blank" rel="noopener noreferrer">Habere git</a>
         <button
           className="btn"
           onClick={() => setFav(toggleFavorite({ ...item, category: categoryName, emoji: categoryEmoji }))}
           aria-pressed={fav}
         >
-          {fav ? "★ Kaldır" : "☆ Favori"}
+          {fav ? "Favoriden çıkar" : "Favorilere ekle"}
         </button>
         {aiEnabled && (
           <button className="btn" onClick={analyze} disabled={busy}>
-            {busy ? "Analiz ediliyor…" : "🤖 AI Analiz"}
+            {busy ? "Analiz ediliyor…" : "AI analizi"}
           </button>
         )}
       </div>
       {analysis && (
         <div className="ai-box">
-          <h4>◈ AI ANALİZİ</h4>
+          <h4>AI analizi</h4>
           <p>{analysis}</p>
         </div>
       )}
